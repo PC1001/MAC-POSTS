@@ -1,5 +1,9 @@
 #folder
 build/
+data/pc_test_data
+
+#osx file
+.DS_store
 
 # Prerequisites
 *.d

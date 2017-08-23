@@ -21,6 +21,7 @@ MNM_Pre_Routing::MNM_Pre_Routing(Path_Table *path_table,MNM_OD_Factory *od_facto
 	    	if(demand_it != _o_it -> second -> m_demand.end()){
 	    		TFlt* demand = demand_it->second;
 	    		int size_demand = sizeof(demand)/sizeof(demand[0]);
+	    		std::cout<< "length of demand " <<size_demand <<std::endl;
 	    		TFlt* demand_copy = new TFlt[size_demand];
 	    		for(int demand_it=0;demand_it<size_demand;demand_it++){
 	    			demand_copy[demand_it] = demand[demand_it];

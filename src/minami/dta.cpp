@@ -58,7 +58,7 @@ int MNM_Dta::set_routing()
     Path_Table *_path_table = MNM::build_pathset(m_graph, m_od_factory, m_link_factory);
     MNM_Pre_Routing *_pre_routing = new MNM_Pre_Routing(_path_table,m_od_factory);
     m_routing = new MNM_Routing_Predetermined(m_graph,m_od_factory,m_node_factory
-      ,m_link_factory,_path_table,_pre_routing);
+      ,m_link_factory,_path_table,_pre_routing,m_total_assign_inter);
   }else{
     std::cout << "wrong routing type\n" << std::endl;
     exit(1);
@@ -80,12 +80,8 @@ int MNM_Dta::build_workzone()
 int MNM_Dta::build_from_files()
 {
   MNM_IO::build_node_factory(m_file_folder, m_config, m_node_factory);
-  // std::cout << test_dta -> m_node_factory -> m_node_map.size() << "\n";
   MNM_IO::build_link_factory(m_file_folder, m_config, m_link_factory);
-  // std::cout << test_dta -> m_link_factory -> m_link_map.size() << "\n";
   MNM_IO::build_od_factory(m_file_folder, m_config, m_od_factory, m_node_factory);
-  // std::cout << test_dta -> m_od_factory -> m_origin_map.size() << "\n";
-  // std::cout << test_dta -> m_od_factory -> m_destination_map.size() << "\n";
   m_graph = MNM_IO::build_graph(m_file_folder, m_config);
   MNM_IO::build_demand(m_file_folder, m_config, m_od_factory);
   build_workzone();
@@ -199,7 +195,7 @@ int MNM_Dta::pre_loading()
     _node -> prepare_loading();
   }
   m_workzone -> init_workzone();
-  std::cout << "finish_pre_loading" <<std::endl;
+
 
   // MNM_Dlink *_link;
   // for (auto _link_it = m_link_factory -> m_link_map.begin(); _link_it != m_link_factory -> m_link_map.end(); _link_it++){

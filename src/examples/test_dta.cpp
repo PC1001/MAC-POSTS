@@ -27,9 +27,10 @@ int main(int argc, char *argv[])
   // std::string path_name(argv[1]);
 
   std::string path_name = "../../data/pc_test_data";
-  std::cout <<"why" <<std::endl;
+  // std::string path_name = "../../data/input_files_2link";
+  // std::cout <<"why" <<std::endl;
   MNM_Dta *test_dta = new MNM_Dta(path_name);
-  std::cout <<"why" <<std::endl;
+  // std::cout <<"why" <<std::endl;
   test_dta -> build_from_files();
   printf("Hooking......\n");
   test_dta -> hook_up_node_and_link();

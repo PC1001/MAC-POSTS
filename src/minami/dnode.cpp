@@ -39,17 +39,24 @@ int MNM_DMOND::evolve(TInt timestamp)
 {
   // printf("MNM_DMOND node evolve\n");
   MNM_Dlink *_link, *_to_link;
-
+  // std::cout << "Now evolve node " << m_node_ID << std::endl;
   for (unsigned i=0; i<m_out_link_array.size(); ++i){
+    
     _link = m_out_link_array[i];
+    // std::cout << "Outlink: " << _link->m_link_ID << std::endl;
     m_out_volume.find(_link) -> second = 0;
+
   }  
 
   /* compute our flow */
   std::deque<MNM_Veh*>::iterator _que_it = m_in_veh_queue.begin();
   while (_que_it != m_in_veh_queue.end()) {
+    // std::cout << "Here "<< std::endl;
+    // std::cout<< (*_que_it) -> m_veh_ID << std::endl;
     _link = (*_que_it) -> get_next_link();
+    // std::cout << "Thislink: " << _link->m_link_ID << std::endl;
     m_out_volume.find(_link) -> second += 1;
+    // std::cout << "Thislink: " << _link->m_link_ID << std::endl;
     _que_it++;
   }
 

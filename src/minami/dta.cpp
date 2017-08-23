@@ -9,6 +9,7 @@ MNM_Dta::MNM_Dta(std::string file_folder)
 
 MNM_Dta::~MNM_Dta()
 {
+
   delete m_veh_factory;
   delete m_node_factory;
   delete m_link_factory;
@@ -58,6 +59,9 @@ int MNM_Dta::set_routing()
     MNM_Pre_Routing *_pre_routing = new MNM_Pre_Routing(_path_table,m_od_factory);
     m_routing = new MNM_Routing_Predetermined(m_graph,m_od_factory,m_node_factory
       ,m_link_factory,_path_table,_pre_routing);
+  }else{
+    std::cout << "wrong routing type\n" << std::endl;
+    exit(1);
   }
 
 
@@ -195,6 +199,7 @@ int MNM_Dta::pre_loading()
     _node -> prepare_loading();
   }
   m_workzone -> init_workzone();
+  std::cout << "finish_pre_loading" <<std::endl;
 
   // MNM_Dlink *_link;
   // for (auto _link_it = m_link_factory -> m_link_map.begin(); _link_it != m_link_factory -> m_link_map.end(); _link_it++){

@@ -14,6 +14,16 @@ MNM_Routing_Predetermined::MNM_Routing_Predetermined(PNEGraph &graph,
 
   }
 
+int MNM_Routing_Predetermined::init_routing(Path_Table *path_table)
+{
+  // if (path_table == NULL){
+  //   printf("Path table need to be set in Fixed routing.\n");
+  //   exit(-1);
+  // }
+  // set_path_table(path_table);
+  return 0;
+}
+
 MNM_Routing_Predetermined::~MNM_Routing_Predetermined()
 {
   for (auto _map_it : m_tracker){

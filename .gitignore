@@ -1,6 +1,7 @@
 #folder
 build/
 data/pc_test_data
+data/
 
 #osx file
 .DS_store

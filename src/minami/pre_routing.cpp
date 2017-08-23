@@ -59,20 +59,20 @@ MNM_Pre_Routing::~MNM_Pre_Routing(){
 
 int MNM_Pre_Routing::update_routing_table_MSA(MNM_PMC_Table pmc_table, float lambda){
 	//TO DO
-	MNM::routing_table_multiply(routing_table,1-lambda);
+	// MNM::routing_table_multiply(routing_table,1-lambda);
 	return 0;
 }
 
 
 int MNM_Pre_Routing::update_routing_table_MSA1(MNM_PMC_Table pmc_table_lower,MNM_PMC_Table pmc_table_upper,float lambda){
 	//TO DO
-	MNM::routing_table_multiply(routing_table,1-lambda);
+	// MNM::routing_table_multiply(routing_table,1-lambda);
 	return 0;
 }
 
 int MNM_Pre_Routing::update_routing_table_MSA2(MNM_PMC_Table pmc_table_lower,MNM_PMC_Table pmc_table_upper,float lambda){
 	//TO DO
-	MNM::routing_table_multiply(routing_table,1-lambda);
+	// MNM::routing_table_multiply(routing_table,1-lambda);
 	return 0;
 }
 

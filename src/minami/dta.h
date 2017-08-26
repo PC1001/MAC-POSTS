@@ -12,6 +12,7 @@
 #include "routing.h"
 #include "shortest_path.h"
 #include "pre_routing.h"
+#include "pmc_table.h"
 
 #include <string>
 
@@ -49,6 +50,10 @@ public:
   MNM_Statistics *m_statistics;
   MNM_Routing *m_routing;
   MNM_Workzone *m_workzone;
+  /********** for SO DTA ***********/
+  MNM_PMC_Table *m_pmc_table;
+  int update_pmc_lower();
+  int update_pmc_upper();
 };               
 
 

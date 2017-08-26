@@ -59,6 +59,8 @@ int MNM_Dta::set_routing()
     MNM_Pre_Routing *_pre_routing = new MNM_Pre_Routing(_path_table,m_od_factory);
     m_routing = new MNM_Routing_Predetermined(m_graph,m_od_factory,m_node_factory
       ,m_link_factory,_path_table,_pre_routing,m_total_assign_inter);
+
+    //need to initiaize pmc table
   }else{
     std::cout << "wrong routing type\n" << std::endl;
     exit(1);
@@ -197,11 +199,11 @@ int MNM_Dta::pre_loading()
   m_workzone -> init_workzone();
 
 
-  // MNM_Dlink *_link;
-  // for (auto _link_it = m_link_factory -> m_link_map.begin(); _link_it != m_link_factory -> m_link_map.end(); _link_it++){
-  //   _link = _link_it -> second;
-  //   _link -> install_cumulative_curve();
-  // }
+  MNM_Dlink *_link;
+  for (auto _link_it = m_link_factory -> m_link_map.begin(); _link_it != m_link_factory -> m_link_map.end(); _link_it++){
+    _link = _link_it -> second;
+    _link -> install_cumulative_curve();
+  }
   return 0;
 }
 

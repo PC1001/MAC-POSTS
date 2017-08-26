@@ -59,7 +59,7 @@ MNM_Pre_Routing::~MNM_Pre_Routing(){
 
 
 int MNM_Pre_Routing::update_routing_table_MSA(MNM_PMC_Table pmc_table, float lambda){
-	//TO DO
+	//TO DO, not only need to update the routing table, but also the demand of OD when no departure time choice
 	// MNM::routing_table_multiply(routing_table,1-lambda);
 	return 0;
 }
@@ -74,6 +74,15 @@ int MNM_Pre_Routing::update_routing_table_MSA1(MNM_PMC_Table pmc_table_lower,MNM
 int MNM_Pre_Routing::update_routing_table_MSA2(MNM_PMC_Table pmc_table_lower,MNM_PMC_Table pmc_table_upper,float lambda){
 	//TO DO
 	// MNM::routing_table_multiply(routing_table,1-lambda);
+	return 0;
+}
+
+int MNM_Pre_Routing::update_demand(MNM_OD_Factory *od_factory){
+	// required in the case with departure time choice
+	return 0;
+}
+
+int MNM_Pre_Routing::test_function(){
 	return 0;
 }
 

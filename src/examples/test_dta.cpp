@@ -1,5 +1,6 @@
 #include "dta.h"
 #include "workzone.h"
+#include "io.h"
 
 int main(int argc, char *argv[])
 {
@@ -38,6 +39,9 @@ int main(int argc, char *argv[])
   // test_dta -> is_ok();
   // MNM::save_path_table(((MNM_Routing_Predetermined )test_dta -> m_routing) -> m_path_table);
   test_dta -> loading(true);
+  // MNM_Routing_Predetermined *testpre = static_cast<MNM_Routing_Predetermined*>(test_dta -> m_routing);
+  // std::cout << testpre -> m_pre_routing -> test_function() << std::endl;
+  MNM_IO::dump_cumulative_curve("./",test_dta -> m_link_factory);
 
 
   delete test_dta;

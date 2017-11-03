@@ -58,6 +58,8 @@ int MNM_Dlink::install_cumulative_curve()
 }
 
 
+
+
 int MNM_Dlink::move_veh_queue(std::deque<MNM_Veh*> *from_queue,
                                   std::deque<MNM_Veh*> *to_queue, 
                                   TInt number_tomove)
@@ -820,4 +822,32 @@ TFlt MNM_Dlink_Ltm::get_demand()
   TFlt _send = m_N_in2.get_result(TFlt(m_current_timestamp * m_unit_time + m_unit_time) - m_length / m_ffs)
                - m_N_out2.get_result(TFlt(m_current_timestamp * m_unit_time));
   return MNM_Ults::min(_send, m_lane_flow_cap * TFlt(m_number_of_lane) * m_unit_time);
+}
+
+TFlt MNM_Dlink::get_link_real_tt(TFlt t){
+  return TFlt(0.0);
+}
+
+TFlt MNM_Dlink::get_link_inflow(TFlt t){
+  return TFlt(0.0);
+}
+
+TFlt MNM_Dlink::get_link_outflow(TFlt t){
+  return TFlt(0.0);
+}
+
+int MNM_Dlink_Pq::is_congested(){
+  return 1;
+}
+
+int MNM_Dlink_Ctm::is_congested(){
+  return 1;
+}
+
+int MNM_Dlink_Lq::is_congested(){
+  return 1;
+}
+
+int MNM_Dlink_Ltm::is_congested(){
+  return 1;
 }

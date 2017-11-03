@@ -26,6 +26,7 @@ public:
   int add_record(std::pair<TFlt, TFlt> r);
   int add_increment(std::pair<TFlt, TFlt> r);
   TFlt get_result(TFlt time);
+
   std::string to_string();
   int shrink(TInt number);
 private:
@@ -48,6 +49,15 @@ public:
   int hook_up_node(MNM_Dnode *from, MNM_Dnode *to);
   TFlt virtual get_link_flow() {return TFlt(0);};
   TFlt virtual get_link_tt() {return TFlt(0);};
+  /*******
+  For  SODTA
+  TO DO
+  ********/
+  TFlt get_link_real_tt(TFlt t);
+  TFlt get_link_inflow(TFlt t);
+  TFlt get_link_outflow(TFlt t);
+  int virtual is_congested(){return 0;};
+
 
   int install_cumulative_curve();
 // protected:
@@ -85,6 +95,9 @@ public:
   void virtual print_info() override;
   TFlt virtual get_link_flow() override;
   TFlt virtual get_link_tt() override;
+
+  //SO-DTA
+  int virtual is_congested() override;
 
 // private:
   class Ctm_Cell;
@@ -148,6 +161,9 @@ public:
   TFlt m_hold_cap;
   TInt m_max_stamp;
   TFlt m_unit_time;
+
+  //SO-DTA
+  int virtual is_congested() override;
 };
 
 
@@ -186,6 +202,9 @@ public:
 
   TFlt get_flow_from_density(TFlt density);
   TFlt get_demand();
+
+  //SO-DTA
+  int virtual is_congested() override;
 };
 
 
@@ -228,7 +247,15 @@ public:
   TInt m_record_size;
 
   TFlt get_demand();
+
+  //SO-DTA
+  int virtual is_congested() override;
 };
 
+
+
+/**************
+Helper function for 
+**************/
 
 #endif

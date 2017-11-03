@@ -54,6 +54,8 @@ public:
   MNM_PMC_Table *m_pmc_table;
   int update_pmc_lower();
   int update_pmc_upper();
+
+  TFlt total_TT();
 };               
 
 
@@ -62,6 +64,8 @@ namespace MNM
   int print_vehicle_statistics(MNM_Veh_Factory *veh_factory);
   int print_vehicle_info(MNM_Veh_Factory *veh_factory);
   bool has_running_vehicle(MNM_Veh_Factory *veh_factory);
+  int demand_OD_update(MNM_OD_Factory *m_od_factory,MNM_Routing_Predetermined *m_routing);
+
 }
 
 #endif

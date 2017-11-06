@@ -824,30 +824,73 @@ TFlt MNM_Dlink_Ltm::get_demand()
   return MNM_Ults::min(_send, m_lane_flow_cap * TFlt(m_number_of_lane) * m_unit_time);
 }
 
+
+
+/**********
+        extra method for SO DTA
+*******************/
+TFlt MNM_Cumulative_Curve::get_time(TFlt count){
+  arrange();
+  if (m_recorder.size() == 0 || m_recorder.back().second < count){
+    std::cout<<"Warning: you are requesting the time of a count that exceeds the total counts of the link" << std::endl;
+    return TFlt(0);
+  }
+  if (m_recorder.size() == 1 && m_recorder[0].second >= count){
+    return MNM_Ults::divide(count,m_recorder[0].second) * m_recorder[0].first;
+  }
+ //  if (m_recorder[0].first >= time){
+ //    return m_recorder[0].second;
+ // }
+  for (size_t i=1; i<m_recorder.size(); ++i){
+    if (m_recorder[i].second >= count){
+      return m_recorder[i-1].first  
+          + (count - m_recorder[i-1].second)/(m_recorder[i].second - m_recorder[i-1].second)
+            * (m_recorder[i].first - m_recorder[i-1].first);
+    }
+  }
+  return m_recorder.back().first;
+}
+
+
+
 TFlt MNM_Dlink::get_link_real_tt(TFlt t){
-  return TFlt(0.0);
+  if (m_N_in == NULL || m_N_out == NULL){
+    std::cout << "Warning :: Try to get travel time but the CC is not installed";
+    return TFlt(0.0);
+  }else{
+    TFlt _arrival_count = m_N_in -> get_result(t);
+    TFlt _leave_time = m_N_out -> get_time(_arrival_count);
+    return _leave_time - t;
+  }
+
 }
 
 TFlt MNM_Dlink::get_link_inflow(TFlt t){
+  // get the inflow rate at time t
   return TFlt(0.0);
 }
 
 TFlt MNM_Dlink::get_link_outflow(TFlt t){
+  // get the outflow rate at time t
   return TFlt(0.0);
 }
 
 int MNM_Dlink_Pq::is_congested(){
+  // check if the link is congested at current time
   return 1;
 }
 
 int MNM_Dlink_Ctm::is_congested(){
+  // check if the link is congested at current time
   return 1;
 }
 
 int MNM_Dlink_Lq::is_congested(){
+  // check if the link is congested at current time, TODO
   return 1;
 }
 
 int MNM_Dlink_Ltm::is_congested(){
+  // check if the link is congested at current time, TODO
   return 1;
 }

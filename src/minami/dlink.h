@@ -26,6 +26,7 @@ public:
   int add_record(std::pair<TFlt, TFlt> r);
   int add_increment(std::pair<TFlt, TFlt> r);
   TFlt get_result(TFlt time);
+  TFlt get_time(TFlt count);
 
   std::string to_string();
   int shrink(TInt number);

@@ -57,5 +57,5 @@
 #add_executable (test_ksp test_ksp.cpp)
 #target_link_libraries (test_ksp PUBLIC Snap minami adv_ds)
 
-add_executable (test_dta test_dta.cpp)
-target_link_libraries (test_dta PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})
+add_executable (test_SO_main test_SO_main.cpp)
+target_link_libraries (test_SO_main PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})

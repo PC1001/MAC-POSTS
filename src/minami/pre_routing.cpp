@@ -58,6 +58,30 @@ MNM_Pre_Routing::~MNM_Pre_Routing(){
 }
 
 
+
+int MNM_Pre_Routing::reassign_routing(TInt oid,TInt did, TInt pid, TInt interval, TFlt lambda){
+
+	// TO DO: for period _int, in time _int, assign all demand to path pid
+	// denote the new routing scheme as f_n, original as f_o
+	// update routing table as f = (1-lambda)* f_o + lambda *f_n
+	// the interval should already be divided by the unit length
+	TFlt _total_demand = 0;
+	for (auto _path_demand  = routing_table ->at(oid).at(did).begin();
+			_path_demand != routing_table ->at(oid).at(did).begin();_path_demand++){
+		_total_demand += _path_demand -> second[interval];
+	}
+	for (auto _path_demand  = routing_table ->at(oid).at(did).begin();
+			_path_demand != routing_table ->at(oid).at(did).begin();_path_demand++){
+		if (_path_demand -> first == pid){
+			_path_demand -> second[interval] = (1-lambda) * _path_demand -> second[interval] + lambda * _total_demand;
+		}else{
+			_path_demand -> second[interval] = (1-lambda) * _path_demand -> second[interval];
+		}
+	}
+	return 0;
+}
+
+
 int MNM_Pre_Routing::update_routing_table_MSA(MNM_PMC_Table pmc_table, float lambda){
 	//TO DO, not only need to update the routing table, but also the demand of OD when no departure time choice
 	// MNM::routing_table_multiply(routing_table,1-lambda);

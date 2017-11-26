@@ -28,6 +28,7 @@ public:
   TFlt get_result(TFlt time);
   TFlt get_time(TFlt count);
 
+
   std::string to_string();
   int shrink(TInt number);
 private:
@@ -54,10 +55,20 @@ public:
   For  SODTA
   TO DO
   ********/
+  std::vector<int> *indicator_congestion;
+  std::vector<TInt> *congestion_dissipate;
+
   TFlt get_link_real_tt(TFlt t);
   TFlt get_link_inflow(TFlt t);
   TFlt get_link_outflow(TFlt t);
   int virtual is_congested(){return 0;};
+  TFlt get_link_lower_PMC(TInt t);
+  TFlt get_link_upper_PMC(TInt t);
+  int update_dissipate();
+  int is_congested_after(TInt t);
+  TInt next_pmc_time_lower(TInt t);
+  TInt next_pmc_time_upper(TInt t);
+
 
 
   int install_cumulative_curve();

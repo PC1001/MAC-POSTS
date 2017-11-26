@@ -54,6 +54,10 @@ public:
   MNM_PMC_Table *m_pmc_table;
   int update_pmc_lower();
   int update_pmc_upper();
+  TFlt compute_pmc_upper(TInt t, MNM_Path* path);
+  TFlt compute_pmc_lower(TInt t, MNM_Path* path);
+  int route_update_MSA(TFlt lambda); // no subgradient
+  int route_update_subgradient();
 
   TFlt total_TT();
 };               

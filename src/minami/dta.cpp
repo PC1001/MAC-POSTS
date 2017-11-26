@@ -243,6 +243,8 @@ int MNM_Dta::load_once(bool verbose, TInt load_int, TInt assign_int)
   for (auto _node_it = m_node_factory -> m_node_map.begin(); _node_it != m_node_factory -> m_node_map.end(); _node_it++){
     _node = _node_it -> second;
     // printf("node ID is %d\n", _node -> m_node_ID());
+    printf("Moving through node...!\n");
+    std::cout<<_node_it -> first <<std::endl;
     _node -> evolve(load_int);
   }
 

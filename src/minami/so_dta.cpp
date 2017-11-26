@@ -1,12 +1,78 @@
 #include "dta.h"
-
+#include <limits>
 // method of MNM_Dta class that used for SO-DTA
+
+TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
+	return TFlt(0.0);
+}
+
+TFlt MNM_Dta::compute_pmc_lower(TInt t, MNM_Path* path){
+	return TFlt(0.0);
+}
 
 int MNM_Dta::update_pmc_lower(){
 	m_pmc_table -> m_upper_pmc_table -> clear();
+	
 
 	return 0;
 }
+
+
+
+int MNM_Dta::route_update_MSA(TFlt lambda){
+	//baseline MSA algorithm
+
+	// TO DO
+	// 1. what are the interval values (easy)
+	// 2. the upper_pmc function (hard, require first implement the is_congested() funciton of dlink)
+	// 3. the reassign_routing function (easy but lengthy)
+
+	TInt _assign_inter = m_start_assign_interval;
+	TInt _cur_int = 0;
+	TInt _end_int = 100; // TO DO
+	TInt _oid;
+	TInt _did;
+	MNM_Pathset* _pset;
+	MNM_Pre_Routing *pre_routing = m_routing-> m_pre_routing;
+	Path_Table * _path_table = pre_routing->m_path_table;
+	MNM_Path * _path;
+	TFlt _thispmc;
+	TInt _min_path_id;
+	TFlt _min_PMC; 
+
+	// for each O-D pair, for each time period
+	// compute the PMC for each path in path set
+	// and update the prerouting table
+	for (TInt _int = 0; _int < _end_int;_int++){
+		for (auto _ops = _path_table -> begin();_ops != _path_table ->end(); _ops++){
+			_oid = _ops -> first;
+			for (auto _dps = _ops -> second -> begin(); _dps != _ops -> second -> end(); _dps++){
+				_did = _dps -> first;
+				_pset = _dps -> second;
+				if (_pset -> m_path_vec.size() ==0)
+					continue;
+				else{
+					_min_path_id = 0;
+
+					_min_PMC = TFlt(std::numeric_limits<float>::max());
+					for(int _pit = 0;_pit < _pset -> m_path_vec.size() ; _pit ++){
+						_path  = _pset -> m_path_vec[_pit];
+						_thispmc = compute_pmc_upper(_int,_path);
+						if ( _thispmc< _min_PMC){
+							_min_path_id = _pit;
+							_min_PMC = _thispmc;
+						}
+					}
+					pre_routing -> reassign_routing(_oid,_did,_min_path_id,_int,lambda);
+				}
+
+			}
+		}
+	}
+
+
+}
+
 
 int MNM_Dta::update_pmc_upper(){
 	m_pmc_table -> m_upper_pmc_table -> clear();
@@ -17,7 +83,6 @@ int MNM_Dta::update_pmc_upper(){
 		TInt _o_id = _o_it -> second -> m_origin_node -> m_node_ID;
 		std::pair<TInt,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>> _myo 
 			(_o_id,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>());
-
 		m_pmc_table -> m_upper_pmc_table->insert(_myo);
 		for (auto _d_it = m_od_factory -> m_destination_map.begin(); _d_it !=m_od_factory -> m_destination_map.end(); _d_it++){
 			TInt _d_id = _d_it -> second -> m_dest_node -> m_node_ID;
@@ -28,8 +93,7 @@ int MNM_Dta::update_pmc_upper(){
 			for(size_t _p_it = 0;_p_it<_pset->m_path_vec.size();_p_it++){
 				_pmc = TFlt(0.0);
 				// std::pair<TInt,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>> _myo ;
-				std::pair<TInt,std::vector<TFlt>>  _myp 
-					(_p_it,std::vector<TFlt>());  
+				std::pair<TInt,std::vector<TFlt>>  _myp (_p_it,std::vector<TFlt>());  
 				m_pmc_table -> m_upper_pmc_table->at(_o_id).at(_d_id).insert(_myp);
 				_path = _pset->m_path_vec.at(_p_it);
 				for (size_t _l_it = 0;_l_it < _path->m_link_vec.size();_l_it++){
@@ -37,8 +101,8 @@ int MNM_Dta::update_pmc_upper(){
 
 				}
 				//TO-DO
+				
 				m_pmc_table -> m_upper_pmc_table->at(_o_id).at(_d_id).at(_p_it).push_back(_pmc);
-
 			}
 		}
 	}

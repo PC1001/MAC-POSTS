@@ -252,6 +252,9 @@ int MNM_Dnode_Inout::prepare_supplyANDdemand()
       for (_veh_it = _in_link -> m_finished_array.begin(); _veh_it != _in_link -> m_finished_array.end(); _veh_it++){
         if ((*_veh_it) -> get_next_link() == _out_link) _count += 1;
       }
+      // std::cout << 
+      // std::cout<< _count << "," << m_flow_scalar << std::endl;
+      // std::cout<< _offset << "," << i << "," << j << std::endl;
       m_demand[_offset*i + j] = TFlt(_count) / m_flow_scalar;
     }
   }
@@ -417,7 +420,7 @@ int MNM_Dnode_Inout::add_in_link(MNM_Dlink *in_link)
 
 int MNM_Dnode_Inout::evolve(TInt timestamp)
 {
-  // printf("Inout node evolve\n");
+  printf("Inout node evolve\n");
   // printf("1\n");
   prepare_supplyANDdemand();
   // printf("2\n"); 
@@ -426,7 +429,7 @@ int MNM_Dnode_Inout::evolve(TInt timestamp)
   round_flow_to_vehicle();
   // printf("4\n");
   record_cumulative_curve(timestamp);
-  // // printf("4.1\n");
+  // printf("4.1\n");
   move_vehicle();
   // printf("5\n");
   return 0;
@@ -488,12 +491,15 @@ MNM_Dnode_GRJ::~MNM_Dnode_GRJ()
 
 int MNM_Dnode_GRJ::prepare_loading()
 {
+  printf("5\n");
   MNM_Dnode_Inout::prepare_loading();
   TInt _num_in = m_in_link_array.size();
   m_d_a = (TFlt*) malloc(sizeof(TFlt) * _num_in);
+  printf("5\n");
   memset(m_d_a, 0x0, sizeof(TFlt) * _num_in);
   m_C_a = (TFlt*) malloc(sizeof(TFlt) * _num_in);
   memset(m_C_a, 0x0, sizeof(TFlt) * _num_in);
+  printf("5\n");
   return 0;
 }
 

@@ -32,6 +32,7 @@ public:
 	int update_routing_table_MSA2(MNM_PMC_Table pmc_table_lower,MNM_PMC_Table pmc_table_upper,float lambda);
 	int update_demand(MNM_OD_Factory *od_factory);
 	int test_function();
+	int reassign_routing(TInt oid,TInt did, TInt pid, TInt interval, TFlt lambda);
 	// MNM_Pre_Routing operator+(MNM_Pre_Routing other); // plus other pouting class, for MSA optimization
 	// MNM_Pre_Routing operator*(float lambda); // times the num of vehs
 };

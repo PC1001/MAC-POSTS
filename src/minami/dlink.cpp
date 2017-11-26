@@ -31,6 +31,8 @@ MNM_Dlink::MNM_Dlink( TInt ID,
   m_incoming_array = std::deque<MNM_Veh *>();
   m_N_in = NULL;
   m_N_out = NULL;
+  indicator_congestion = NULL;
+  congestion_dissipate = NULL;
 }
 
 MNM_Dlink::~MNM_Dlink()
@@ -39,6 +41,7 @@ MNM_Dlink::~MNM_Dlink()
   m_incoming_array.clear();
   if (m_N_out != NULL) delete m_N_out;
   if (m_N_in != NULL) delete m_N_in;  
+  if (indicator_congestion !=NULL) delete indicator_congestion;
 }
 
 int MNM_Dlink::hook_up_node(MNM_Dnode *from, MNM_Dnode *to)
@@ -54,6 +57,13 @@ int MNM_Dlink::install_cumulative_curve()
   m_N_in = new MNM_Cumulative_Curve();
   m_N_in -> add_record(std::pair<TFlt, TFlt>(TFlt(0), TFlt(0)));
   m_N_out -> add_record(std::pair<TFlt, TFlt>(TFlt(0), TFlt(0)));
+  // install cc now is equivalent to do SO-DTA
+  // thus we also install the congestion indicatorinstall
+  indicator_congestion = new std::vector<int>();
+  congestion_dissipate = new std::vector<TInt>();
+
+
+
   return 0;
 }
 
@@ -865,6 +875,32 @@ TFlt MNM_Dlink::get_link_real_tt(TFlt t){
 
 }
 
+
+
+TFlt MNM_Dlink::get_link_lower_PMC(TInt t){
+  int _cgst = is_congested_after(t);
+  
+  if(_cgst==1){
+    int _diss_time = (*congestion_dissipate)[t];
+    return _diss_time - t + get_link_tt();
+  }else{
+    return get_link_tt();
+  }
+}
+
+TFlt MNM_Dlink::get_link_upper_PMC(TInt t){
+  int _cgst = is_congested_after(t);
+  if (_cgst == -1){
+    return get_link_tt();
+  }else {
+    int _diss_time = (*congestion_dissipate)[t];
+    return _diss_time - t + get_link_tt();
+  }
+
+  
+}
+
+
 TFlt MNM_Dlink::get_link_inflow(TFlt t){
   // get the inflow rate at time t
   return TFlt(0.0);
@@ -877,12 +913,21 @@ TFlt MNM_Dlink::get_link_outflow(TFlt t){
 
 int MNM_Dlink_Pq::is_congested(){
   // check if the link is congested at current time
-  return 1;
+  // 0: inflow equal to capacity and no queued flow ()
+  // 1: congested 
+  // -1: not congested
+  int result = 0;
+  if (get_link_supply() < get_link_flow() ){
+    result = -1;
+  }else if(get_link_supply() > get_link_flow() )
+    result = 1;
+  return result;
 }
 
 int MNM_Dlink_Ctm::is_congested(){
   // check if the link is congested at current time
-  return 1;
+  // return (m_cell_array[0] -> m_volume) < (m_cell_array[0] -> m_flow_cap) ;
+  return 0;
 }
 
 int MNM_Dlink_Lq::is_congested(){
@@ -893,4 +938,51 @@ int MNM_Dlink_Lq::is_congested(){
 int MNM_Dlink_Ltm::is_congested(){
   // check if the link is congested at current time, TODO
   return 1;
+}
+
+
+int MNM_Dlink::update_dissipate(){
+  //since the DNL will continue untill all vehicles arrives its destinations
+  //we should expected that the the final element of indicator_congestion should be -1
+  int lasti = 0;
+  for (size_t i = 0; i < indicator_congestion -> size();i++){
+    if((*indicator_congestion)[i] == -1 ){
+      for (size_t j = lasti+1;j<=i;j++){
+        (*congestion_dissipate)[j] = i;
+      }
+      lasti = i;
+    }
+  }
+  return 1;
+}
+
+int MNM_Dlink::is_congested_after(TInt t){
+  return (*indicator_congestion)[t];
+}
+
+
+TInt MNM_Dlink::next_pmc_time_lower(TInt t){
+  int _cgst = is_congested_after(t);
+  
+  if(_cgst==1){
+    int _diss_time = (*congestion_dissipate)[t];
+    return TInt(_diss_time+get_link_tt());
+  }else{
+    return TInt(get_link_tt()+t);
+  }
+
+
+}
+
+
+TInt MNM_Dlink::next_pmc_time_upper(TInt t){
+  int _cgst = is_congested_after(t);
+  
+  if(_cgst!=-1){
+    int _diss_time = (*congestion_dissipate)[t];
+    return TInt(_diss_time+get_link_tt());
+  }else{
+    return TInt(get_link_tt()+t);
+  }
+
 }

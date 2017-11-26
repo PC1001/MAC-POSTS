@@ -74,6 +74,8 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
           _id_path = 0;
         }else if(_remain_demand<=0 && _thisdemand > 0){
           _id_path ++;
+          std::cout << _id_path << "," <<_origin -> m_origin_node -> m_node_ID << ","
+           << _destination -> m_dest_node -> m_node_ID << "," << std::endl;
           _remain_demand = m_pre_routing -> routing_table -> find(_origin -> m_origin_node -> m_node_ID)->
         second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int];
         }else if(_remain_demand >0 && _thisdemand <0){
@@ -90,13 +92,13 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
         m_tracker.insert(std::pair<MNM_Veh*, std::deque<TInt>*>(_veh, _link_queue));
       }  
       for (auto _veh_it = _origin_node -> m_in_veh_queue.begin(); _veh_it!=_origin_node -> m_in_veh_queue.end(); _veh_it++){
-      _veh = *_veh_it;
-      _next_link_ID = m_tracker.find(_veh) -> second -> front();
-      _next_link = m_link_factory -> get_link(_next_link_ID);
-      _veh -> set_next_link(_next_link);
-      m_tracker.find(_veh) -> second -> pop_front();
-      // std::cout << "vehicle " << _veh->m_veh_ID<<" next link: " << _next_link ->m_link_ID <<std::endl;
-    }
+        _veh = *_veh_it;
+        _next_link_ID = m_tracker.find(_veh) -> second -> front();
+        _next_link = m_link_factory -> get_link(_next_link_ID);
+        _veh -> set_next_link(_next_link);
+        m_tracker.find(_veh) -> second -> pop_front();
+        // std::cout << "vehicle " << _veh->m_veh_ID<<" next link: " << _next_link ->m_link_ID <<std::endl;
+      }
     }
 
   }

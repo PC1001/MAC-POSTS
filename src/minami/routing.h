@@ -21,10 +21,12 @@ public:
   virtual ~MNM_Routing();
   int virtual init_routing(Path_Table *path_table=NULL){return 0;};
   int virtual update_routing(TInt timestamp){return 0;};
+  // MNM_Pre_Routing* virtual get_routing_table(){return NULL;};
   PNEGraph m_graph;
   MNM_OD_Factory *m_od_factory;
   MNM_Link_Factory *m_link_factory;
   MNM_Node_Factory *m_node_factory;
+  MNM_Pre_Routing *m_pre_routing;
 };
 
 
@@ -87,15 +89,15 @@ public:
   ~MNM_Routing_Predetermined();
   int virtual init_routing(Path_Table *path_table=NULL);
   int virtual update_routing(TInt timestamp);
+  // MNM_Pre_Routing* virtual get_routing_table(){return m_pre_routing;};
   // private:
   // int set_path_table(Path_Table *path_table);
   // int register_veh(MNM_Veh* veh);
   // int add_veh_path(MNM_Veh* veh, std::deque<TInt> *link_que);
   TInt m_total_assign_inter;
   Path_Table *m_path_table;
-  MNM_Pre_Routing *m_pre_routing;
+  // MNM_Pre_Routing *m_pre_routing;
   std::unordered_map<MNM_Veh*, std::deque<TInt>*> m_tracker;
-  // std::unordered_map<MNM_Veh*, std::deque<TInt>*> m_tracker;
 
 };
 

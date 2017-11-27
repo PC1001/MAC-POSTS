@@ -3,7 +3,15 @@
 // method of MNM_Dta class that used for SO-DTA
 
 TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
-	return TFlt(0.0);
+	//TODO 
+	TFlt _pmc = TFlt(0.0);
+	for (size_t _l_it = 0;_l_it < path->m_link_vec.size();_l_it++){
+		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_tt()/TFlt(m_unit_time);
+	// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
+	//  	<< std::endl;
+
+	}
+	return _pmc;
 }
 
 TFlt MNM_Dta::compute_pmc_lower(TInt t, MNM_Path* path){
@@ -23,13 +31,13 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 	//baseline MSA algorithm
 
 	// TO DO
-	// 1. what are the interval values (easy)
+	// 1. what are the interval values (easy) done
 	// 2. the upper_pmc function (hard, require first implement the is_congested() funciton of dlink)
-	// 3. the reassign_routing function (easy but lengthy)
+	// 3. the reassign_routing function (easy but lengthy) done
 
 	TInt _assign_inter = m_start_assign_interval;
 	TInt _cur_int = 0;
-	TInt _end_int = 100; // TO DO
+	TInt _end_int = m_total_assign_inter; // TO DO
 	TInt _oid;
 	TInt _did;
 	MNM_Pathset* _pset;
@@ -63,13 +71,13 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 							_min_PMC = _thispmc;
 						}
 					}
+					std::cout<< " reassign from " << _oid << " to "<< _did << " at " << _min_path_id
+						 << " with pmc "<< _min_PMC << " at time "<< _int <<  std::endl; 
 					pre_routing -> reassign_routing(_oid,_did,_min_path_id,_int,lambda);
 				}
-
 			}
 		}
 	}
-
 
 }
 
@@ -96,10 +104,14 @@ int MNM_Dta::update_pmc_upper(){
 				std::pair<TInt,std::vector<TFlt>>  _myp (_p_it,std::vector<TFlt>());  
 				m_pmc_table -> m_upper_pmc_table->at(_o_id).at(_d_id).insert(_myp);
 				_path = _pset->m_path_vec.at(_p_it);
+				// std::cout << 
 				for (size_t _l_it = 0;_l_it < _path->m_link_vec.size();_l_it++){
 					_pmc += m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt();
+					// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
+					//  	<< std::endl;
 
 				}
+
 				//TO-DO
 				
 				m_pmc_table -> m_upper_pmc_table->at(_o_id).at(_d_id).at(_p_it).push_back(_pmc);

@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
   // printf("Checking......\n");
   // test_dta -> is_ok();
   // MNM::save_path_table(((MNM_Routing_Predetermined )test_dta -> m_routing) -> m_path_table);
-  int maxiter = 100;
+  int maxiter = 1;
   std::vector<TFlt> tc;
    
   for(int i=0;i<maxiter;i++){
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     TInt ass_int = test_dta -> m_start_assign_interval;
     test_dta -> pre_loading();
     while(!test_dta ->finished_loading(cur_int)){
-      test_dta->load_once(true,cur_int,ass_int);
+      test_dta->load_once(false,cur_int,ass_int);
       if (cur_int % test_dta -> m_assign_freq == 0 || cur_int==0){
         ass_int++;
       }
@@ -36,14 +36,17 @@ int main(int argc, char *argv[])
 
 
     }
-     printf("Hooking......xxx\n");
+    printf("Hooking......xxx\n");
     test_dta -> route_update_MSA(lambda);
     // what is required before updating PMCs'? 
     // test_dta -> update_lower_PMC();
     // test_dta -> update_upper_PMC();
+    TFlt thistc = test_dta -> total_TT();
+    MNM_IO::dump_cumulative_curve("../../test_results", test_dta->m_link_factory);
+    std::cout<<"Total cost "<< thistc<<std::endl;
 
 
-    tc.push_back(test_dta -> total_TT());
+    tc.push_back(thistc);
 
   }
 

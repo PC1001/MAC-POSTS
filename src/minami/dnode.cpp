@@ -420,7 +420,7 @@ int MNM_Dnode_Inout::add_in_link(MNM_Dlink *in_link)
 
 int MNM_Dnode_Inout::evolve(TInt timestamp)
 {
-  printf("Inout node evolve\n");
+  // printf("Inout node evolve\n");
   // printf("1\n");
   prepare_supplyANDdemand();
   // printf("2\n"); 

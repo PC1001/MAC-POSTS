@@ -1,6 +1,6 @@
 #include "dlink.h"
 #include "limits.h"
-
+#include <math.h>
 #include <algorithm>
 
 MNM_Dlink::MNM_Dlink( TInt ID,
@@ -840,6 +840,7 @@ TFlt MNM_Dlink_Ltm::get_demand()
         extra method for SO DTA
 *******************/
 TFlt MNM_Cumulative_Curve::get_time(TFlt count){
+  //need to use ceil, so that the travel time is integer times of unit time
   arrange();
   if (m_recorder.size() == 0 || m_recorder.back().second < count){
     std::cout<<"Warning: you are requesting the time of a count that exceeds the total counts of the link" << std::endl;
@@ -870,7 +871,7 @@ TFlt MNM_Dlink::get_link_real_tt(TFlt t){
   }else{
     TFlt _arrival_count = m_N_in -> get_result(t);
     TFlt _leave_time = m_N_out -> get_time(_arrival_count);
-    return _leave_time - t;
+    return TFlt(ceil(_leave_time - t));
   }
 
 }

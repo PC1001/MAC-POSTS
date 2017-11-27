@@ -17,10 +17,12 @@ MNM_Pre_Routing::MNM_Pre_Routing(Path_Table *path_table,MNM_OD_Factory *od_facto
 	    for (auto _o_it = od_factory -> m_origin_map.begin(); _o_it != od_factory -> m_origin_map.end(); _o_it++){
 	    	_origin_node_ID = _o_it -> second -> m_origin_node -> m_node_ID;
 	    	//-----
+	    	int size_demand = _o_it -> second -> m_max_assign_interval;
 	    	std::unordered_map<MNM_Destination*, TFlt*>::const_iterator demand_it = _o_it -> second -> m_demand.find(_d_it->second);
 	    	if(demand_it != _o_it -> second -> m_demand.end()){
 	    		TFlt* demand = demand_it->second;
-	    		int size_demand = sizeof(demand)/sizeof(demand[0]);
+	    		// int size_demand = sizeof(demand)/sizeof(demand[0]);
+
 	    		std::cout<< "length of demand " <<size_demand <<std::endl;
 	    		TFlt* demand_copy = new TFlt[size_demand];
 	    		for(int demand_it=0;demand_it<size_demand;demand_it++){
@@ -82,6 +84,21 @@ int MNM_Pre_Routing::reassign_routing(TInt oid,TInt did, TInt pid, TInt interval
 }
 
 
+std::string MNM_Pre_Routing::toString(){
+	std::string result = "Pre routing table\n";
+	for (auto _oit = routing_table ->begin();_oit!= routing_table->end(); _oit++){
+		TInt _oid = _oit -> first;
+		for (auto _dit = _oit -> second.begin();_dit != _oit -> second.end();_dit ++){
+			TInt _did = _dit -> first;
+			for (auto _pit = _dit->second.begin();_pit != _dit->second.end();_pit++){
+				TInt _pid = _pit->first;
+			}
+		}
+	}
+	return result;
+
+}
+
 int MNM_Pre_Routing::update_routing_table_MSA(MNM_PMC_Table pmc_table, float lambda){
 	//TO DO, not only need to update the routing table, but also the demand of OD when no departure time choice
 	// MNM::routing_table_multiply(routing_table,1-lambda);
@@ -109,6 +126,9 @@ int MNM_Pre_Routing::update_demand(MNM_OD_Factory *od_factory){
 int MNM_Pre_Routing::test_function(){
 	return 0;
 }
+
+
+
 
 
 /**************************************************************************

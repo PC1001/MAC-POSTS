@@ -33,6 +33,7 @@ public:
 	int update_demand(MNM_OD_Factory *od_factory);
 	int test_function();
 	int reassign_routing(TInt oid,TInt did, TInt pid, TInt interval, TFlt lambda);
+	std::string toString();
 	// MNM_Pre_Routing operator+(MNM_Pre_Routing other); // plus other pouting class, for MSA optimization
 	// MNM_Pre_Routing operator*(float lambda); // times the num of vehs
 };

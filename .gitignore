@@ -2,6 +2,7 @@
 build/
 data/pc_test_data
 data/
+test_results/
 
 #osx file
 .DS_store

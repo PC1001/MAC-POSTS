@@ -871,7 +871,7 @@ TFlt MNM_Dlink::get_link_real_tt(TFlt t){
   }else{
     TFlt _arrival_count = m_N_in -> get_result(t);
     TFlt _leave_time = m_N_out -> get_time(_arrival_count);
-    return TFlt(ceil(_leave_time - t));
+    return TFlt(floor(_leave_time - t));
   }
 
 }

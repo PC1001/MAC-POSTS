@@ -26,6 +26,10 @@ int main(int argc, char *argv[])
     test_dta -> pre_loading();
     while(!test_dta ->finished_loading(cur_int)){
       test_dta->load_once(false,cur_int,ass_int);
+  for (auto _link_it = test_dta -> m_link_factory -> m_link_map.begin(); _link_it !=  test_dta -> m_link_factory -> m_link_map.end(); _link_it++){
+      std::cout<<"Time"<<cur_int<<" if congested" << _link_it ->second -> is_congested() << std::endl;
+}
+
       if (cur_int % test_dta -> m_assign_freq == 0 || cur_int==0){
         ass_int++;
       }

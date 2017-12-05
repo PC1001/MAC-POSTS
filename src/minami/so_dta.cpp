@@ -6,7 +6,11 @@ TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 	//TODO 
 	TFlt _pmc = TFlt(0.0);
 	for (size_t _l_it = 0;_l_it < path->m_link_vec.size();_l_it++){
-		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_tt()/TFlt(m_unit_time);
+		int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(t);
+		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt();
+		if (ifcongest!=-1){
+			_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_lower(t) -t ;
+		}
 	// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
 	//  	<< std::endl;
 
@@ -15,11 +19,13 @@ TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 }
 
 TFlt MNM_Dta::compute_pmc_lower(TInt t, MNM_Path* path){
+	//TODO
 	return TFlt(0.0);
 }
 
 int MNM_Dta::update_pmc_lower(){
 	m_pmc_table -> m_upper_pmc_table -> clear();
+	//useless
 	
 
 	return 0;
@@ -83,41 +89,42 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 
 
 int MNM_Dta::update_pmc_upper(){
-	m_pmc_table -> m_upper_pmc_table -> clear();
-	MNM_Pathset *_pset;
-	MNM_Path* _path;
-	TFlt _pmc = TFlt(0.0);
-	for (auto _o_it = m_od_factory -> m_origin_map.begin(); _o_it != m_od_factory -> m_origin_map.end(); _o_it++){
-		TInt _o_id = _o_it -> second -> m_origin_node -> m_node_ID;
-		std::pair<TInt,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>> _myo 
-			(_o_id,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>());
-		m_pmc_table -> m_upper_pmc_table->insert(_myo);
-		for (auto _d_it = m_od_factory -> m_destination_map.begin(); _d_it !=m_od_factory -> m_destination_map.end(); _d_it++){
-			TInt _d_id = _d_it -> second -> m_dest_node -> m_node_ID;
-			std::pair<TInt,std::unordered_map<TInt,std::vector<TFlt>>> _myd 
-				(_d_id,std::unordered_map<TInt,std::vector<TFlt>>());
-			m_pmc_table -> m_upper_pmc_table -> at(_o_id).insert(_myd);
-			_pset = m_pmc_table -> m_path_table -> at(_o_id)->at(_d_id);
-			for(size_t _p_it = 0;_p_it<_pset->m_path_vec.size();_p_it++){
-				_pmc = TFlt(0.0);
-				// std::pair<TInt,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>> _myo ;
-				std::pair<TInt,std::vector<TFlt>>  _myp (_p_it,std::vector<TFlt>());  
-				m_pmc_table -> m_upper_pmc_table->at(_o_id).at(_d_id).insert(_myp);
-				_path = _pset->m_path_vec.at(_p_it);
-				// std::cout << 
-				for (size_t _l_it = 0;_l_it < _path->m_link_vec.size();_l_it++){
-					_pmc += m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt();
-					// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
-					//  	<< std::endl;
+	// //useless
+	// m_pmc_table -> m_upper_pmc_table -> clear();
+	// MNM_Pathset *_pset;
+	// MNM_Path* _path;
+	// TFlt _pmc = TFlt(0.0);
+	// for (auto _o_it = m_od_factory -> m_origin_map.begin(); _o_it != m_od_factory -> m_origin_map.end(); _o_it++){
+	// 	TInt _o_id = _o_it -> second -> m_origin_node -> m_node_ID;
+	// 	std::pair<TInt,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>> _myo 
+	// 		(_o_id,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>());
+	// 	m_pmc_table -> m_upper_pmc_table->insert(_myo);
+	// 	for (auto _d_it = m_od_factory -> m_destination_map.begin(); _d_it !=m_od_factory -> m_destination_map.end(); _d_it++){
+	// 		TInt _d_id = _d_it -> second -> m_dest_node -> m_node_ID;
+	// 		std::pair<TInt,std::unordered_map<TInt,std::vector<TFlt>>> _myd 
+	// 			(_d_id,std::unordered_map<TInt,std::vector<TFlt>>());
+	// 		m_pmc_table -> m_upper_pmc_table -> at(_o_id).insert(_myd);
+	// 		_pset = m_pmc_table -> m_path_table -> at(_o_id)->at(_d_id);
+	// 		for(size_t _p_it = 0;_p_it<_pset->m_path_vec.size();_p_it++){
+	// 			_pmc = TFlt(0.0);
+	// 			// std::pair<TInt,std::unordered_map<TInt,std::unordered_map<TInt,std::vector<TFlt>>>> _myo ;
+	// 			std::pair<TInt,std::vector<TFlt>>  _myp (_p_it,std::vector<TFlt>());  
+	// 			m_pmc_table -> m_upper_pmc_table->at(_o_id).at(_d_id).insert(_myp);
+	// 			_path = _pset->m_path_vec.at(_p_it);
+	// 			// std::cout << 
+	// 			for (size_t _l_it = 0;_l_it < _path->m_link_vec.size();_l_it++){
+	// 				_pmc += m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt();
+	// 				// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
+	// 				//  	<< std::endl;
 
-				}
+	// 			}
 
-				//TO-DO
+	// 			//TO-DO
 				
-				m_pmc_table -> m_upper_pmc_table->at(_o_id).at(_d_id).at(_p_it).push_back(_pmc);
-			}
-		}
-	}
+	// 			m_pmc_table -> m_upper_pmc_table->at(_o_id).at(_d_id).at(_p_it).push_back(_pmc);
+	// 		}
+	// 	}
+	// }
 	return 0;
 }
 
@@ -173,11 +180,29 @@ TFlt MNM_Dta::total_TT(){
 }
 
 
+int MNM_Dta::link_update_dissipateTime(){
+	//TODO
+	//Should be done at the end of the DNL 
+	// when the cumulative curves and is_congested vector are ready
+	return 0;
+}
+
+int MNM_Dta::link_update_iscongested(){
+	//TODO
+	// should be done after each load_once() function being called
+
+
+
+	return 0;
+}
 
 
 namespace MNM{
 	int demand_OD_update(MNM_OD_Factory *m_od_factory,
 		MNM_Routing_Predetermined *m_routing){
+		//useless
+
+
 		// MNM_Origin *_origin;
 		// MNM_DMOND *_origin_node;
 		// MNM_Destination *_destination;

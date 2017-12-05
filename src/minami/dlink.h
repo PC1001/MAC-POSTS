@@ -59,6 +59,7 @@ public:
   std::vector<TInt> *congestion_dissipate;
 
   TFlt get_link_real_tt(TFlt t);
+  TFlt get_link_fftt();
   TFlt get_link_inflow(TFlt t);
   TFlt get_link_outflow(TFlt t);
   int virtual is_congested(){return 0;};

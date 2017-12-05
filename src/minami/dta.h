@@ -58,6 +58,8 @@ public:
   TFlt compute_pmc_lower(TInt t, MNM_Path* path);
   int route_update_MSA(TFlt lambda); // no subgradient
   int route_update_subgradient();
+  int link_update_dissipateTime();
+  int link_update_iscongested();
 
   TFlt total_TT();
 };               

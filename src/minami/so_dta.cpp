@@ -5,22 +5,36 @@
 TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 	//TODO 
 	TFlt _pmc = TFlt(0.0);
+	TInt _track_time = t;
 	for (size_t _l_it = 0;_l_it < path->m_link_vec.size();_l_it++){
-		int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(t);
-		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt();
-		if (ifcongest!=-1){
-			_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_lower(t) -t ;
-		}
+		// int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(_track_time);
+		// _pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt();
+		// if (ifcongest!=-1){
+		if (m_link_factory -> get_link(path->m_link_vec[_l_it]) -> m_ffs > 1000)continue;
+		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_upper(_track_time) -_track_time;
+		// }
+		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time);
 	// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
 	//  	<< std::endl;
-
 	}
 	return _pmc;
 }
 
 TFlt MNM_Dta::compute_pmc_lower(TInt t, MNM_Path* path){
 	//TODO
-	return TFlt(0.0);
+	TFlt _pmc = TFlt(0.0);
+	TInt _track_time = t;
+	for (size_t _l_it = 0;_l_it < path->m_link_vec.size();_l_it++){
+		// int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(_track_time);
+		// _pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt();
+		// if (ifcongest==1){
+		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_lower(_track_time) -_track_time;
+		// }
+		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time);
+	// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
+	//  	<< std::endl;
+	}
+	return _pmc;
 }
 
 int MNM_Dta::update_pmc_lower(){
@@ -43,7 +57,7 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 
 	TInt _assign_inter = m_start_assign_interval;
 	TInt _cur_int = 0;
-	TInt _end_int = m_total_assign_inter; // TO DO
+	TInt _end_int = m_total_assign_inter; 
 	TInt _oid;
 	TInt _did;
 	MNM_Pathset* _pset;
@@ -57,7 +71,13 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 	// for each O-D pair, for each time period
 	// compute the PMC for each path in path set
 	// and update the prerouting table
+	// 
+	std::cout << "End time:" << _end_int << std::endl;
+	std::cout << "unit time:" << m_unit_time << std::endl;
+	TInt _t;
 	for (TInt _int = 0; _int < _end_int;_int++){
+		_t = _int * m_assign_freq;
+
 		for (auto _ops = _path_table -> begin();_ops != _path_table ->end(); _ops++){
 			_oid = _ops -> first;
 			for (auto _dps = _ops -> second -> begin(); _dps != _ops -> second -> end(); _dps++){
@@ -71,15 +91,15 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 					_min_PMC = TFlt(std::numeric_limits<float>::max());
 					for(int _pit = 0;_pit < _pset -> m_path_vec.size() ; _pit ++){
 						_path  = _pset -> m_path_vec[_pit];
-						_thispmc = compute_pmc_upper(_int,_path);
+						_thispmc = compute_pmc_upper(_t,_path);
 						if ( _thispmc< _min_PMC){
 							_min_path_id = _pit;
 							_min_PMC = _thispmc;
 						}
 					}
 					std::cout<< " reassign from " << _oid << " to "<< _did << " at " << _min_path_id
-						 << " with pmc "<< _min_PMC << " at time "<< _int <<  std::endl; 
-					pre_routing -> reassign_routing(_oid,_did,_min_path_id,_int,lambda);
+						 << " with pmc "<< _min_PMC << " at time "<< _t <<  std::endl; 
+					pre_routing -> reassign_routing(_oid,_did,_min_path_id,_t,lambda);
 				}
 			}
 		}
@@ -182,19 +202,32 @@ TFlt MNM_Dta::total_TT(){
 
 int MNM_Dta::link_update_dissipateTime(){
 	//TODO
-	//Should be done at the end of the DNL 
-	// when the cumulative curves and is_congested vector are ready
+	MNM_Dlink *_link;
+	for (auto _link_it =  m_link_factory -> m_link_map.begin(); 
+		_link_it != m_link_factory -> m_link_map.end(); _link_it++){
+		_link = _link_it -> second;
+		_link -> update_dissipate();
+	}
 	return 0;
 }
 
-int MNM_Dta::link_update_iscongested(){
-	//TODO
-	// should be done after each load_once() function being called
-
-
-
-	return 0;
+int MNM_Dta::reinstall_cumulative_curve(){
+	MNM_Dlink *_link;
+	for (auto _link_it =  m_link_factory -> m_link_map.begin(); 
+		_link_it != m_link_factory -> m_link_map.end(); _link_it++){
+		_link = _link_it -> second;
+		_link -> install_cumulative_curve();
+	}
 }
+
+// int MNM_Dta::link_update_iscongested(){
+// 	//TODO
+// 	// should be done after each load_once() function being called
+	
+
+
+// 	return 0;
+// }
 
 
 namespace MNM{

@@ -86,12 +86,27 @@ int MNM_Pre_Routing::reassign_routing(TInt oid,TInt did, TInt pid, TInt interval
 
 std::string MNM_Pre_Routing::toString(){
 	std::string result = "Pre routing table\n";
+	MNM_Path * _path;
 	for (auto _oit = routing_table ->begin();_oit!= routing_table->end(); _oit++){
 		TInt _oid = _oit -> first;
+		result += "From Origin " + std::to_string(_oid) + "\n";
 		for (auto _dit = _oit -> second.begin();_dit != _oit -> second.end();_dit ++){
 			TInt _did = _dit -> first;
+			result += "	to destination" + std::to_string(_did) +":\n";
+
 			for (auto _pit = _dit->second.begin();_pit != _dit->second.end();_pit++){
 				TInt _pid = _pit->first;
+				MNM_Pathset* _path_set = m_path_table->at(_oid)->at(_did);
+				for(int _p = 0;_p < _path_set-> m_path_vec.size() ; _p ++){
+					_path  = _path_set -> m_path_vec[_p];
+					result += "Path " + std::to_string(_p) + ":";
+					for (size_t _l_it = 0;_l_it < _path->m_link_vec.size();_l_it++){
+						result += std::to_string(_path->m_link_vec[_l_it]) + ",";
+					}
+					result += "\n";
+
+				}
+
 			}
 		}
 	}

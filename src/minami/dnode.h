@@ -82,10 +82,22 @@ protected:
   int round_flow_to_vehicle();
   int move_vehicle();
   int record_cumulative_curve(TInt timestamp);
+  
   TFlt *m_demand; //2d array
   TFlt *m_supply; //1d array
   TFlt *m_veh_flow; //2d array
   TInt *m_veh_tomove; //2d array
+
+  // ************for SO_DTA
+  int update_link_congestion();
+
+
+
+
+  // *********************
+
+
+
 };
 
 /**************************************************************************

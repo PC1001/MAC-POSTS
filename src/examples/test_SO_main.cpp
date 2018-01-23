@@ -17,8 +17,9 @@ int main(int argc, char *argv[])
   // printf("Checking......\n");
   // test_dta -> is_ok();
   // MNM::save_path_table(((MNM_Routing_Predetermined )test_dta -> m_routing) -> m_path_table);
-  int maxiter = 1;
+  int maxiter = 5;
   std::vector<TFlt> tc;
+  // std::cout << test_dta -> m_routing -> m_pre_routing -> toString() << std::endl;
    
   for(int i=0;i<maxiter;i++){
     TInt cur_int = 0;
@@ -26,9 +27,9 @@ int main(int argc, char *argv[])
     test_dta -> pre_loading();
     while(!test_dta ->finished_loading(cur_int)){
       test_dta->load_once(false,cur_int,ass_int);
-  for (auto _link_it = test_dta -> m_link_factory -> m_link_map.begin(); _link_it !=  test_dta -> m_link_factory -> m_link_map.end(); _link_it++){
-      std::cout<<"Time"<<cur_int<<" if congested" << _link_it ->second -> is_congested() << std::endl;
-}
+      // for (auto _link_it = test_dta -> m_link_factory -> m_link_map.begin(); _link_it !=  test_dta -> m_link_factory -> m_link_map.end(); _link_it++){
+      //     std::cout<<"Time"<<cur_int<<" if congested" << _link_it ->second -> is_congested() << std::endl;
+      // }
 
       if (cur_int % test_dta -> m_assign_freq == 0 || cur_int==0){
         ass_int++;
@@ -39,14 +40,18 @@ int main(int argc, char *argv[])
       //record if each link is congested
 
 
+
     }
     printf("Hooking......xxx\n");
+    TFlt thistc = test_dta -> total_TT();
+    test_dta -> link_update_dissipateTime();
     test_dta -> route_update_MSA(lambda);
+    test_dta -> reinstall_cumulative_curve();
     // what is required before updating PMCs'? 
     // test_dta -> update_lower_PMC();
     // test_dta -> update_upper_PMC();
-    TFlt thistc = test_dta -> total_TT();
-    MNM_IO::dump_cumulative_curve("../../test_results", test_dta->m_link_factory);
+    
+    // MNM_IO::dump_cumulative_curve("../../test_results", test_dta->m_link_factory);
     std::cout<<"Total cost "<< thistc<<std::endl;
 
 

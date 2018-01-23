@@ -264,10 +264,13 @@ int MNM_Dnode_Inout::prepare_supplyANDdemand()
     _out_link = m_out_link_array[j];
     // printf("Get link s\n");
     // printf("The out link is %d\n", _out_link -> m_link_ID);
+    // std::cout << _out_link -> m_link_ID << std::endl;
+    // std::cout <<  _out_link -> get_link_supply()<< std::endl;
     m_supply[j] = _out_link -> get_link_supply();
     // printf(" get link s fin\n");
     // printf("Link %d, supply is %.4f\n", _out_link -> m_link_ID, m_supply[j]);
   } 
+
 
   return 0;
 }
@@ -285,6 +288,7 @@ int MNM_Dnode_Inout::round_flow_to_vehicle()
     _to_move = 0;
     _out_link = m_out_link_array[j];
     for (size_t i=0; i< m_in_link_array.size(); ++i){
+      // std::cout << m_veh_flow[i * _offset + j] <<std::endl;
       m_veh_tomove[i * _offset + j] = MNM_Ults::round(m_veh_flow[i * _offset + j] * m_flow_scalar);
       _to_move += m_veh_tomove[i * _offset + j];
       // printf("Rounding %d, %d the value %f to %d\n", i, j, m_veh_flow[i * _offset + j] * m_flow_scalar, m_veh_tomove[i * _offset + j]);
@@ -302,6 +306,38 @@ int MNM_Dnode_Inout::round_flow_to_vehicle()
   return 0;
 }
 
+
+int MNM_Dnode_Inout::update_link_congestion(){
+
+  // assume  for now that all for SO
+  // TODO: this should not be called when not doing SO, need some check before 
+  // calling this function
+  size_t _offset = m_out_link_array.size();
+  TInt _count;
+  std::deque <MNM_Veh*>::iterator _veh_it;
+  MNM_Dlink *_in_link;
+
+
+  for (size_t i=0; i < m_in_link_array.size(); ++i){
+    _in_link = m_in_link_array[i];
+    if (_in_link -> m_finished_array.size() > 0) {
+      _in_link -> indicator_congestion -> push_back(1);
+    }else{
+      int idt = 0;
+      for (size_t j=0; j< m_out_link_array.size(); ++j){
+        if (m_demand[_offset*i + j] == m_supply[j]){
+          _in_link -> indicator_congestion -> push_back(0);
+          idt = 1;
+          break;
+        }
+      }
+      if (idt!=1){
+        _in_link -> indicator_congestion -> push_back(-1);
+      }
+    }
+  }
+  return 1;
+}
 
 int MNM_Dnode_Inout::record_cumulative_curve(TInt timestamp)
 {
@@ -369,6 +405,7 @@ int MNM_Dnode_Inout::move_vehicle()
       //   }
       // }
       auto _veh_it = _in_link->m_finished_array.begin();
+      // std::cout<<"Total amout to move: "<<_num_to_move << std::endl; 
       while (_veh_it != _in_link->m_finished_array.end()) {
         if (_num_to_move > 0) {
           _veh = *_veh_it;
@@ -431,6 +468,8 @@ int MNM_Dnode_Inout::evolve(TInt timestamp)
   record_cumulative_curve(timestamp);
   // printf("4.1\n");
   move_vehicle();
+
+  update_link_congestion();
   // printf("5\n");
   return 0;
 }
@@ -465,6 +504,7 @@ int MNM_Dnode_FWJ::compute_flow()
     }
     for (size_t i=0; i< m_in_link_array.size(); ++i){
       _portion = MNM_Ults::divide(m_demand[i * _offset + j], _sum_in_flow);
+      // std::cout<<m_demand[i * _offset + j] << "," << _portion * m_supply[j] << std::endl;
       // printf("Portion is %.4f, sum in flow is %.4f, demand is %.4f\n", _portion, _sum_in_flow, m_demand[i * _offset + j]);
       m_veh_flow[i * _offset + j] = MNM_Ults::min(m_demand[i * _offset + j], _portion * m_supply[j]);
       // printf("to link %d the flow is %.4f\n", m_out_link_array[j] -> m_link_ID, m_veh_flow[i * _offset + j]);

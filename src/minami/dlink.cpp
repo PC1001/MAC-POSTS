@@ -2,6 +2,7 @@
 #include "limits.h"
 #include <math.h>
 #include <algorithm>
+#include <limits>
 
 MNM_Dlink::MNM_Dlink( TInt ID,
                       TInt number_of_lane,
@@ -42,6 +43,7 @@ MNM_Dlink::~MNM_Dlink()
   if (m_N_out != NULL) delete m_N_out;
   if (m_N_in != NULL) delete m_N_in;  
   if (indicator_congestion !=NULL) delete indicator_congestion;
+  if (congestion_dissipate !=NULL) delete congestion_dissipate;
 }
 
 int MNM_Dlink::hook_up_node(MNM_Dnode *from, MNM_Dnode *to)
@@ -53,6 +55,12 @@ int MNM_Dlink::hook_up_node(MNM_Dnode *from, MNM_Dnode *to)
 
 int MNM_Dlink::install_cumulative_curve()
 {
+  if (m_N_out != NULL) delete m_N_out;
+  if (m_N_in != NULL) delete m_N_in;  
+  if (indicator_congestion !=NULL) delete indicator_congestion;
+  if (congestion_dissipate !=NULL) delete congestion_dissipate;
+
+
   m_N_out = new MNM_Cumulative_Curve();
   m_N_in = new MNM_Cumulative_Curve();
   m_N_in -> add_record(std::pair<TFlt, TFlt>(TFlt(0), TFlt(0)));
@@ -61,9 +69,6 @@ int MNM_Dlink::install_cumulative_curve()
   // thus we also install the congestion indicatorinstall
   indicator_congestion = new std::vector<int>();
   congestion_dissipate = new std::vector<TInt>();
-
-
-
   return 0;
 }
 
@@ -306,7 +311,8 @@ TFlt MNM_Dlink_Ctm::Ctm_Cell::get_supply()
     return TFlt(0.0);
   }
   if(m_wave_ratio <= 1.0) //this one is quite tricky, why not just _min(flwCap, hldCap - curDensity)*wvRatio? 
-    return m_flow_cap > _real_volume ? m_flow_cap: TFlt((m_hold_cap - _real_volume) * m_wave_ratio);  //flowCap equals to critical density
+    return m_flow_cap > _real_volume ? m_flow_cap: TFlt((m_hold_cap - _real_volume) * m_wave_ratio);  
+    //flowCap equals to critical density
   else 
     return std::min(m_flow_cap, TFlt(m_hold_cap - _real_volume));
 }
@@ -836,9 +842,131 @@ TFlt MNM_Dlink_Ltm::get_demand()
 
 
 
+
+
+
+
+
+/**************************************************************************
+                          Point Queue 2 (infinite capacity, )
+**************************************************************************/
+MNM_Dlink_Pq2::MNM_Dlink_Pq2(   TInt ID,
+                              TFlt lane_hold_cap, 
+                              TFlt lane_flow_cap, 
+                              TInt number_of_lane,
+                              TFlt length,
+                              TFlt ffs,
+                              TFlt unit_time,
+                              TFlt flow_scalar)
+  : MNM_Dlink::MNM_Dlink ( ID, number_of_lane, length, ffs )
+{
+  m_lane_hold_cap = lane_hold_cap;
+  m_lane_flow_cap = lane_flow_cap;
+  m_flow_scalar = flow_scalar;
+  m_hold_cap = m_lane_hold_cap * TFlt(number_of_lane) * m_length;
+  m_max_stamp = MNM_Ults::round(m_length/(m_ffs * unit_time));
+  m_veh_queue = std::unordered_map<MNM_Veh*, TInt>();
+  m_volume = TInt(0);
+  m_unit_time = unit_time;
+}
+
+
+MNM_Dlink_Pq2::~MNM_Dlink_Pq2()
+{
+  m_veh_queue.clear();
+}
+
+TFlt MNM_Dlink_Pq2::get_link_supply()
+{
+  return TFlt(std::numeric_limits<float>::max());
+}
+
+int MNM_Dlink_Pq2::clear_incoming_array() {
+  TInt _num_veh_tomove = std::min(TInt(m_incoming_array.size()), TInt(get_link_supply() * m_flow_scalar));
+  MNM_Veh *_veh;
+  for (int i=0; i < _num_veh_tomove; ++i) {
+    _veh = m_incoming_array.front();
+    m_incoming_array.pop_front();
+    m_veh_queue.insert(std::pair<MNM_Veh*, TInt>(_veh, TInt(0)));
+  }
+  m_volume = TInt(m_finished_array.size() + m_veh_queue.size());
+  // move_veh_queue(&m_incoming_array, , m_incoming_array.size());
+
+  // m_cell_array[0] -> m_volume = m_cell_array[0] ->m_veh_queue.size();
+  return 0;
+}
+
+void MNM_Dlink_Pq2::print_info()
+{
+  printf("Link Dynamic model: Poing Queue\n");
+  printf("Real volume in the link: %.4f\n", (float)(m_volume/m_flow_scalar));
+  printf("Finished real volume in the link: %.2f\n", (float)(TFlt(m_finished_array.size())/m_flow_scalar));
+}
+
+int MNM_Dlink_Pq2::evolve(TInt timestamp)
+{
+  std::unordered_map<MNM_Veh*, TInt>::iterator _que_it = m_veh_queue.begin();
+  while (_que_it != m_veh_queue.end()) {
+    if (_que_it -> second >= m_max_stamp) {
+      m_finished_array.push_back(_que_it -> first);
+      _que_it = m_veh_queue.erase(_que_it); //c++ 11
+    }
+    else {
+      _que_it -> second += 1;
+      _que_it ++;
+    }
+  }
+
+  /* volume */
+  // m_volume = TInt(m_finished_array.size() + m_veh_queue.size());
+
+  return 0;
+}
+
+TFlt MNM_Dlink_Pq2::get_link_flow()
+{
+  return TFlt(m_volume) / m_flow_scalar;
+}
+
+
+
+TFlt MNM_Dlink_Pq2::get_link_tt()
+{
+  TFlt _cost, _spd;
+  TFlt _rho  = get_link_flow()/m_number_of_lane/m_length;// get the density in veh/mile
+  TFlt _rhoj = m_lane_hold_cap; //get the jam density
+  TFlt _rhok = m_lane_flow_cap/m_ffs; //get the critical density
+  //  if (abs(rho - rhok) <= 0.0001) cost = POS_INF_INT;
+  if (_rho >= _rhoj) {
+    _cost = MNM_Ults::max_link_cost(); //sean: i think we should use rhoj, not rhok
+  } 
+  else {
+    if (_rho <= _rhok) {
+      _spd = m_ffs;
+    }
+    else {
+      _spd = MNM_Ults::max(DBL_EPSILON * m_ffs, m_lane_flow_cap *(_rhoj - _rho)/((_rhoj - _rhok)*_rho));
+    }
+    _cost = m_length/_spd;
+  } 
+  return _cost;
+}
+
+/**************************************************************************
+                      End Point Queue 2 (infinite capacity, )
+**************************************************************************/
+
+
 /**********
         extra method for SO DTA
 *******************/
+
+TFlt MNM_Dlink::get_link_fftt(){
+  return m_length/m_ffs;
+}
+
+
+
 TFlt MNM_Cumulative_Curve::get_time(TFlt count){
   //need to use ceil, so that the travel time is integer times of unit time
   arrange();
@@ -925,6 +1053,19 @@ int MNM_Dlink_Pq::is_congested(){
   return result;
 }
 
+int MNM_Dlink_Pq2::is_congested(){
+  // check if the link is congested at current time
+  // 0: inflow equal to capacity and no queued flow ()
+  // 1: congested 
+  // -1: not congested
+  int result = 0;
+  if (get_link_supply() < get_link_flow() ){
+    result = -1;
+  }else if(get_link_supply() > get_link_flow() )
+    result = 1;
+  return result;
+}
+
 int MNM_Dlink_Ctm::is_congested(){
   // check if the link is congested at current time
   // return (m_cell_array[0] -> m_volume) < (m_cell_array[0] -> m_flow_cap) ;
@@ -946,14 +1087,28 @@ int MNM_Dlink::update_dissipate(){
   //since the DNL will continue untill all vehicles arrives its destinations
   //we should expected that the the final element of indicator_congestion should be -1
   int lasti = 0;
+  // std::cout << "length"<<indicator_congestion -> size() << std::endl;
   for (size_t i = 0; i < indicator_congestion -> size();i++){
+    // std::cout<< (*indicator_congestion)[i] << ",";
     if((*indicator_congestion)[i] == -1 ){
       for (size_t j = lasti+1;j<=i;j++){
-        (*congestion_dissipate)[j] = i;
+        // (*congestion_dissipate)[j] = i;
+        congestion_dissipate -> push_back(i);
       }
       lasti = i;
+    }else{
+      continue;
+    }
+
+  }
+  if (lasti != indicator_congestion -> size()-1){
+    for (size_t j = lasti+1;j<indicator_congestion -> size();j++){
+      // (*congestion_dissipate)[j] = indicator_congestion -> size()-1;
+      congestion_dissipate -> push_back(indicator_congestion -> size()-1);
     }
   }
+  // std::cout << std::endl;
+
   return 1;
 }
 
@@ -967,23 +1122,26 @@ TInt MNM_Dlink::next_pmc_time_lower(TInt t){
   
   if(_cgst==1){
     int _diss_time = (*congestion_dissipate)[t];
-    return TInt(_diss_time+get_link_tt());
+    return TInt(_diss_time);
   }else{
-    return TInt(get_link_tt()+t);
+    return TInt(get_link_fftt()+t);
   }
-
-
 }
 
 
 TInt MNM_Dlink::next_pmc_time_upper(TInt t){
+  // std::cout << "Link ID:" << m_link_ID << std::endl;
+  // std::cout<< "FFs:"<<m_ffs << std::endl;
+  // std::cout <<  "Here" <<congestion_dissipate -> size() << std::endl;
+  // std::cout << indicator_congestion -> size() << std::endl;
+  // std::cout<< " At time:" << t ;
   int _cgst = is_congested_after(t);
-  
+  // std::cout<< ", is congested?:" << _cgst  <<std::endl;
   if(_cgst!=-1){
     int _diss_time = (*congestion_dissipate)[t];
-    return TInt(_diss_time+get_link_tt());
+    return TInt(_diss_time);
   }else{
-    return TInt(get_link_tt()+t);
+    return TInt(get_link_fftt()+t);
   }
 
 }

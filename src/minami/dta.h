@@ -59,7 +59,8 @@ public:
   int route_update_MSA(TFlt lambda); // no subgradient
   int route_update_subgradient();
   int link_update_dissipateTime();
-  int link_update_iscongested();
+  // int link_update_iscongested();
+  int reinstall_cumulative_curve();
 
   TFlt total_TT();
 };               

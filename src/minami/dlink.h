@@ -141,7 +141,7 @@ public:
   TFlt m_flow_cap;
   TFlt m_wave_ratio;
   TInt m_out_veh;
-  std::deque<MNM_Veh*>  m_veh_queue; 
+  std::deque<MNM_Veh*>  m_veh_queue;
 };
 
 /**************************************************************************
@@ -178,6 +178,10 @@ public:
   //SO-DTA
   int virtual is_congested() override;
 };
+
+
+
+
 
 
 
@@ -265,6 +269,43 @@ public:
   int virtual is_congested() override;
 };
 
+
+
+/**************************************************************************
+                          Point Queue 2 (infinite capacity, )
+**************************************************************************/
+
+class MNM_Dlink_Pq2 : public MNM_Dlink
+{
+public:
+  MNM_Dlink_Pq2(TInt ID,
+               TFlt lane_hold_cap, 
+               TFlt lane_flow_cap, 
+               TInt number_of_lane,
+               TFlt length,
+               TFlt ffs,
+               TFlt unit_time,
+               TFlt flow_scalar);
+  ~MNM_Dlink_Pq2();
+  int virtual evolve(TInt timestamp) override;
+  TFlt virtual get_link_supply() override;
+  int virtual clear_incoming_array() override;
+  void virtual print_info() override;
+  TFlt virtual get_link_flow() override;
+  TFlt virtual get_link_tt() override;
+// private:
+  std::unordered_map<MNM_Veh*, TInt> m_veh_queue;
+  TInt m_volume; //vehicle number, without the flow scalar
+  TFlt m_lane_hold_cap;
+  TFlt m_lane_flow_cap;
+  TFlt m_flow_scalar;
+  TFlt m_hold_cap;
+  TInt m_max_stamp;
+  TFlt m_unit_time;
+
+  //SO-DTA
+  int virtual is_congested() override;
+};
 
 
 /**************

@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
 
-  std::string path_name = "../../data/input_files_test_SO";
+  std::string path_name = "../../data/input_files_test_SO_2link";
   // std::string path_name = "../../data/input_files_2link";
   // std::cout <<"why" <<std::endl;
   MNM_Dta *test_dta = new MNM_Dta(path_name);
@@ -17,10 +17,27 @@ int main(int argc, char *argv[])
   // printf("Checking......\n");
   // test_dta -> is_ok();
   // MNM::save_path_table(((MNM_Routing_Predetermined )test_dta -> m_routing) -> m_path_table);
-  int maxiter = 5;
+  int maxiter = 3;
   std::vector<TFlt> tc;
   // std::cout << test_dta -> m_routing -> m_pre_routing -> toString() << std::endl;
-   
+
+
+
+  // //******************************************
+  // //Print out and test the property of links
+  // MNM_Dlink *_link;
+  // for (auto _link_it = test_dta -> m_link_factory -> m_link_map.begin(); _link_it 
+  //     != test_dta ->m_link_factory -> m_link_map.end(); _link_it++){
+  //   _link = _link_it->second;
+  //   std::cout <<  "Link ID:" << _link -> m_link_ID << std::endl;
+  //   _link -> print_info();
+  // } 
+  // return 1;
+  // //******************************************
+
+
+
+
   for(int i=0;i<maxiter;i++){
     TInt cur_int = 0;
     TInt ass_int = test_dta -> m_start_assign_interval;
@@ -46,12 +63,13 @@ int main(int argc, char *argv[])
     TFlt thistc = test_dta -> total_TT();
     test_dta -> link_update_dissipateTime();
     test_dta -> route_update_MSA(lambda);
+    MNM_IO::dump_cumulative_curve("../../test_results", test_dta->m_link_factory);
     test_dta -> reinstall_cumulative_curve();
     // what is required before updating PMCs'? 
     // test_dta -> update_lower_PMC();
     // test_dta -> update_upper_PMC();
     
-    // MNM_IO::dump_cumulative_curve("../../test_results", test_dta->m_link_factory);
+    
     std::cout<<"Total cost "<< thistc<<std::endl;
 
 

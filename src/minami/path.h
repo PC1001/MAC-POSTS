@@ -56,6 +56,9 @@ namespace MNM {
   int normalize_path_table_p(Path_Table *path_table);
   int copy_p_to_buffer(Path_Table *path_table, TInt col);
   int copy_buffer_to_p(Path_Table *path_table, TInt col);
+
+  // for SO-DTA
+  Path_Table *build_all_pathset(PNEGraph &graph, MNM_OD_Factory *od_factory, MNM_Link_Factory *link_factory);
 }
 
 

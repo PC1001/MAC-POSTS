@@ -96,9 +96,10 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 							_min_path_id = _pit;
 							_min_PMC = _thispmc;
 						}
+						std::cout << "Path id:" << _pit << ", pmc:" <<_thispmc << ", at time " << _t << std::endl;
 					}
-					std::cout<< " reassign from " << _oid << " to "<< _did << " at " << _min_path_id
-						 << " with pmc "<< _min_PMC << " at time "<< _t <<  std::endl; 
+					// std::cout<< " reassign from " << _oid << " to "<< _did << " at " << _min_path_id
+					// 	 << " with pmc "<< _min_PMC << " at time "<< _t <<  std::endl; 
 					pre_routing -> reassign_routing(_oid,_did,_min_path_id,_t,lambda);
 				}
 			}

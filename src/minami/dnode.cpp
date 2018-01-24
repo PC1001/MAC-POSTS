@@ -320,7 +320,7 @@ int MNM_Dnode_Inout::update_link_congestion(){
 
   for (size_t i=0; i < m_in_link_array.size(); ++i){
     _in_link = m_in_link_array[i];
-    if (_in_link -> m_finished_array.size() > 0) {
+    if (_in_link ->is_congested()) {
       _in_link -> indicator_congestion -> push_back(1);
     }else{
       int idt = 0;

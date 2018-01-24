@@ -848,7 +848,7 @@ TFlt MNM_Dlink_Ltm::get_demand()
 
 
 /**************************************************************************
-                          Point Queue 2 (infinite capacity, )
+                          Point Queue 2 (infinite capacity, outflow rate limited by the property of the link)
 **************************************************************************/
 MNM_Dlink_Pq2::MNM_Dlink_Pq2(   TInt ID,
                               TFlt lane_hold_cap, 
@@ -882,7 +882,8 @@ TFlt MNM_Dlink_Pq2::get_link_supply()
 }
 
 int MNM_Dlink_Pq2::clear_incoming_array() {
-  TInt _num_veh_tomove = std::min(TInt(m_incoming_array.size()), TInt(get_link_supply() * m_flow_scalar));
+  // TInt _num_veh_tomove = std::min(TInt(m_incoming_array.size()), TInt(get_link_supply() * m_flow_scalar));
+  TInt _num_veh_tomove = TInt(m_incoming_array.size());
   MNM_Veh *_veh;
   for (int i=0; i < _num_veh_tomove; ++i) {
     _veh = m_incoming_array.front();
@@ -898,16 +899,22 @@ int MNM_Dlink_Pq2::clear_incoming_array() {
 
 void MNM_Dlink_Pq2::print_info()
 {
+  TFlt cap = m_lane_flow_cap * TFlt(m_number_of_lane) * m_unit_time;
+  std::cout << "Flow cap:" << m_lane_flow_cap << ", number of lanes:" << m_number_of_lane << ",unit time:"
+    << m_unit_time << std::endl;
   printf("Link Dynamic model: Poing Queue\n");
   printf("Real volume in the link: %.4f\n", (float)(m_volume/m_flow_scalar));
   printf("Finished real volume in the link: %.2f\n", (float)(TFlt(m_finished_array.size())/m_flow_scalar));
+  printf("The capacity is %.4f\n",cap);
+  printf("Flow scalar rate is %.4f\n",m_flow_scalar);
 }
 
 int MNM_Dlink_Pq2::evolve(TInt timestamp)
 {
   std::unordered_map<MNM_Veh*, TInt>::iterator _que_it = m_veh_queue.begin();
+  TFlt _cap = m_lane_flow_cap * TFlt(m_number_of_lane) * m_unit_time * m_flow_scalar;
   while (_que_it != m_veh_queue.end()) {
-    if (_que_it -> second >= m_max_stamp) {
+    if (_que_it -> second >= m_max_stamp && m_finished_array.size() < _cap) {
       m_finished_array.push_back(_que_it -> first);
       _que_it = m_veh_queue.erase(_que_it); //c++ 11
     }
@@ -1054,22 +1061,34 @@ int MNM_Dlink_Pq::is_congested(){
 }
 
 int MNM_Dlink_Pq2::is_congested(){
+  std::unordered_map<MNM_Veh*, TInt>::iterator _que_it = m_veh_queue.begin();
+  if (m_finished_array.size()>0) return 1;
+  while(_que_it!= m_veh_queue.end()){
+    if(_que_it->second > m_max_stamp){
+      return 1;
+    }else{
+      _que_it ++;
+    }
+  }
+  return 0;
   // check if the link is congested at current time
   // 0: inflow equal to capacity and no queued flow ()
   // 1: congested 
   // -1: not congested
-  int result = 0;
-  if (get_link_supply() < get_link_flow() ){
-    result = -1;
-  }else if(get_link_supply() > get_link_flow() )
-    result = 1;
-  return result;
+  // int result = 0;
+  // if (get_link_supply() < get_link_flow() ){
+  //   result = -1;
+  // }else if(get_link_supply() > get_link_flow() )
+  //   result = 1;
+  // return result;
+
 }
 
 int MNM_Dlink_Ctm::is_congested(){
   // check if the link is congested at current time
   // return (m_cell_array[0] -> m_volume) < (m_cell_array[0] -> m_flow_cap) ;
-  return 0;
+  if (m_finished_array.size()>0)return 1;
+  else return 0;
 }
 
 int MNM_Dlink_Lq::is_congested(){

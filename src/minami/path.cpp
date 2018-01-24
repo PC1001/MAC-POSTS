@@ -106,7 +106,7 @@ MNM_Path *extract_path(TInt origin_ID, TInt dest_ID, std::unordered_map<TInt, TI
 Path_Table *build_pathset(PNEGraph &graph, MNM_OD_Factory *od_factory, MNM_Link_Factory *link_factory)
 {
   /* setting */
-  size_t MaxIter = 3;
+  size_t MaxIter = 10;
   TFlt Mid_Scale = 3;
   TFlt Heavy_Scale = 6;
 
@@ -149,7 +149,7 @@ Path_Table *build_pathset(PNEGraph &graph, MNM_OD_Factory *od_factory, MNM_Link_
   MNM_Dlink *_link;
   size_t _CurIter = 0;
   while (_CurIter < MaxIter){
-    printf("Current interval %d\n", (int) _CurIter);
+    // printf("Current interval %d\n", (int) _CurIter);
     for (auto _d_it = od_factory -> m_destination_map.begin(); _d_it != od_factory -> m_destination_map.end(); _d_it++){
       _dest_node_ID = _d_it -> second -> m_dest_node -> m_node_ID;
       MNM_Shortest_Path::all_to_one_FIFO(_dest_node_ID, graph, _free_cost_map, _free_shortest_path_tree);
@@ -254,6 +254,12 @@ int copy_buffer_to_p(Path_Table *path_table, TInt col)
     }
   }  
   return 0;
+}
+
+
+Path_Table *build_all_pathset(PNEGraph &graph, MNM_OD_Factory *od_factory, MNM_Link_Factory *link_factory){
+  //TO DO
+  return NULL;
 }
 
 }//end namespace MNM

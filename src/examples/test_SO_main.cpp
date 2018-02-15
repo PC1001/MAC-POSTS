@@ -6,18 +6,21 @@ int main(int argc, char *argv[])
 {
 
   std::string path_name = "../../data/input_files_test_SO_2link";
+  std::string path_table = "../../path_generator/result.txt";
   // std::string path_name = "../../data/input_files_2link";
   // std::cout <<"why" <<std::endl;
   MNM_Dta *test_dta = new MNM_Dta(path_name);
   // std::cout <<"why" <<std::endl;
+  test_dta -> m_path_file = path_table;
   test_dta -> build_from_files();
+  
   printf("Hooking......\n");
   TFlt lambda = TFlt(0.1);
   test_dta -> hook_up_node_and_link();
   // printf("Checking......\n");
   // test_dta -> is_ok();
   // MNM::save_path_table(((MNM_Routing_Predetermined )test_dta -> m_routing) -> m_path_table);
-  int maxiter = 3;
+  int maxiter = 4;
   std::vector<TFlt> tc;
   // std::cout << test_dta -> m_routing -> m_pre_routing -> toString() << std::endl;
 
@@ -63,7 +66,7 @@ int main(int argc, char *argv[])
     TFlt thistc = test_dta -> total_TT();
     test_dta -> link_update_dissipateTime();
     test_dta -> route_update_MSA(lambda);
-    MNM_IO::dump_cumulative_curve("../../test_results", test_dta->m_link_factory);
+    // MNM_IO::dump_cumulative_curve("../../test_results", test_dta->m_link_factory);
     test_dta -> reinstall_cumulative_curve();
     // what is required before updating PMCs'? 
     // test_dta -> update_lower_PMC();
@@ -81,6 +84,10 @@ int main(int argc, char *argv[])
   // MNM_Routing_Predetermined *testpre = static_cast<MNM_Routing_Predetermined*>(test_dta -> m_routing);
   // std::cout << testpre -> m_pre_routing -> test_function() << std::endl;
   // MNM_IO::dump_cumulative_curve("./",test_dta -> m_link_factory);
+  for(int i=0;i<tc.size();i++){
+    std::cout << tc[i] << ",";
+  }
+  std::cout << std::endl;
 
 
   delete test_dta;

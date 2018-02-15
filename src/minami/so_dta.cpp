@@ -6,7 +6,9 @@ TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 	//TODO 
 	TFlt _pmc = TFlt(0.0);
 	TInt _track_time = t;
+	std::cout<< "Computing upper pmc ..............." << std::endl;
 	for (size_t _l_it = 0;_l_it < path->m_link_vec.size();_l_it++){
+		std::cout << _pmc << "," << _track_time << std::endl;
 		// int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(_track_time);
 		// _pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt();
 		// if (ifcongest!=-1){
@@ -14,9 +16,11 @@ TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_upper(_track_time) -_track_time;
 		// }
 		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time);
+
 	// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
 	//  	<< std::endl;
 	}
+	std::cout << "..................................." << std::endl;
 	return _pmc;
 }
 
@@ -89,6 +93,7 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 					_min_path_id = 0;
 
 					_min_PMC = TFlt(std::numeric_limits<float>::max());
+					// std::cout << "O " << _oid <<",D " << _did <<": number of path " << _pset -> m_path_vec.size()  << std::endl;
 					for(int _pit = 0;_pit < _pset -> m_path_vec.size() ; _pit ++){
 						_path  = _pset -> m_path_vec[_pit];
 						_thispmc = compute_pmc_upper(_t,_path);
@@ -98,13 +103,14 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 						}
 						std::cout << "Path id:" << _pit << ", pmc:" <<_thispmc << ", at time " << _t << std::endl;
 					}
-					// std::cout<< " reassign from " << _oid << " to "<< _did << " at " << _min_path_id
-					// 	 << " with pmc "<< _min_PMC << " at time "<< _t <<  std::endl; 
-					pre_routing -> reassign_routing(_oid,_did,_min_path_id,_t,lambda);
+					std::cout<< " reassign from " << _oid << " to "<< _did << " at " << _min_path_id
+						 << " with pmc "<< _min_PMC << " at time "<< _t <<  std::endl; 
+					pre_routing -> reassign_routing(_oid,_did,_min_path_id,_int,lambda);
 				}
 			}
 		}
 	}
+	std::cout << pre_routing -> toString() << std::endl;
 
 }
 

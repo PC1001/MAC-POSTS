@@ -55,7 +55,8 @@ int MNM_Dta::set_routing()
                                    m_od_factory, m_node_factory, m_link_factory);
   }else if(m_config ->get_string("routing_type")=="Predetermined"){
     
-    Path_Table *_path_table = MNM::build_pathset(m_graph, m_od_factory, m_link_factory);
+    // Path_Table *_path_table = MNM::build_pathset(m_graph, m_od_factory, m_link_factory);
+    Path_Table *_path_table = MNM_IO::load_path_table_ksp(m_path_file,m_graph);
     MNM_Pre_Routing *_pre_routing = new MNM_Pre_Routing(_path_table,m_od_factory);
     m_routing = new MNM_Routing_Predetermined(m_graph,m_od_factory,m_node_factory
       ,m_link_factory,_path_table,_pre_routing,m_total_assign_inter);

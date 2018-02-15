@@ -61,6 +61,7 @@ public:
   int link_update_dissipateTime();
   // int link_update_iscongested();
   int reinstall_cumulative_curve();
+  std::string m_path_file;
 
   TFlt total_TT();
 };               

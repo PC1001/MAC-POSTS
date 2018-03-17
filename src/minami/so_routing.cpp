@@ -45,6 +45,7 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
   MNM_Veh *_veh;
   MNM_Path *_route_path;
   TInt _ass_int = timestamp/_release_freq;
+  TFlt _flow_scalar;
   if (timestamp % _release_freq ==0  ){
     
     // need to register vehicles to m_tracker
@@ -52,32 +53,40 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
       
       _origin = _origin_it -> second;
       _origin_node = _origin -> m_origin_node;
+      _flow_scalar = _origin -> m_flow_scalar;
       _node_ID = _origin_node -> m_node_ID;
 
       // here assume that the order of dest in veh deq is the same as in the mdemand of origin
       // this is ensured by the release function of Origin
       auto _demand_it = _origin -> m_demand.begin();
       _destination = _demand_it -> first;
-      TFlt _thisdemand = _demand_it ->second[_ass_int];
+      TFlt _thisdemand = _demand_it ->second[_ass_int] * _flow_scalar;
+      
       int _id_path = 0;
       TFlt _remain_demand = m_pre_routing -> routing_table -> find(_origin -> m_origin_node -> m_node_ID)->
-        second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int];
-      
+        second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int] * _flow_scalar;
+        // std::cout << "Start demand" << _thisdemand  << " Start remaining:"  << _remain_demand<< 
+        //    ", Origin size: "<< _origin_node ->m_in_veh_queue.size()<<std::endl;
       for (auto _veh_it = _origin_node -> m_in_veh_queue.begin(); _veh_it!=_origin_node -> m_in_veh_queue.end(); _veh_it++){
         _veh = *_veh_it;
         if(_veh -> get_destination() != _destination &&_remain_demand<=0 ){
-          _destination = _veh -> get_destination();
-          _remain_demand = m_pre_routing -> routing_table -> find(_origin -> m_origin_node -> m_node_ID)->
-        second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int];
-          _thisdemand = _origin -> m_demand.find(_destination) -> second[_ass_int];
 
           _id_path = 0;
-        }else if(_remain_demand<=0 && _thisdemand > 0){
-          _id_path ++;
-          std::cout << _id_path << "," <<_origin -> m_origin_node -> m_node_ID << ","
-           << _destination -> m_dest_node -> m_node_ID << "," << std::endl;
+          _destination = _veh -> get_destination();
           _remain_demand = m_pre_routing -> routing_table -> find(_origin -> m_origin_node -> m_node_ID)->
-        second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int];
+        second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int] * _flow_scalar;
+          _thisdemand = _origin -> m_demand.find(_destination) -> second[_ass_int] * _flow_scalar;
+
+
+
+          
+        }else if(_remain_demand<=0 && _thisdemand > 0){
+
+          _id_path ++;
+          // std::cout << _id_path << "," <<_origin -> m_origin_node -> m_node_ID << ","
+          //  << _destination -> m_dest_node -> m_node_ID << "," << std::endl; //never fall in this branch, why?
+          _remain_demand = m_pre_routing -> routing_table -> find(_origin -> m_origin_node -> m_node_ID)->
+        second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int]* _flow_scalar;
         }else if(_remain_demand >0 && _thisdemand <0){
           std::cout<< "somthing wrong with the demand " <<std::endl;
           exit(1);
@@ -90,15 +99,17 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
         std::deque<TInt> *_link_queue = new std::deque<TInt>();
         std::copy(_route_path -> m_link_vec.begin(), _route_path -> m_link_vec.end(), std::back_inserter(*_link_queue));
         m_tracker.insert(std::pair<MNM_Veh*, std::deque<TInt>*>(_veh, _link_queue));
-      }  
-      for (auto _veh_it = _origin_node -> m_in_veh_queue.begin(); _veh_it!=_origin_node -> m_in_veh_queue.end(); _veh_it++){
+      }
+      // std::cout<<"this deman:" << _thisdemand   << ", remaining demand:" << _remain_demand <<std::endl;
+
+    }
+    for (auto _veh_it = _origin_node -> m_in_veh_queue.begin(); _veh_it!=_origin_node -> m_in_veh_queue.end(); _veh_it++){
         _veh = *_veh_it;
         _next_link_ID = m_tracker.find(_veh) -> second -> front();
         _next_link = m_link_factory -> get_link(_next_link_ID);
         _veh -> set_next_link(_next_link);
         m_tracker.find(_veh) -> second -> pop_front();
         // std::cout << "vehicle " << _veh->m_veh_ID<<" next link: " << _next_link ->m_link_ID <<std::endl;
-      }
     }
 
   }

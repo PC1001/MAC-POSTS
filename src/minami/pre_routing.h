@@ -14,6 +14,9 @@
 
 #include <unordered_map>
 #include <typeinfo>
+#include <set>
+
+
 // #include "factory.h"
 // using namespace std;
 class MNM_Pre_Routing
@@ -33,6 +36,7 @@ public:
 	int update_demand(MNM_OD_Factory *od_factory);
 	int test_function();
 	int reassign_routing(TInt oid,TInt did, TInt pid, TInt interval, TFlt lambda);
+	int reassign_routing_batch(TInt oid,TInt did,std::set<TInt> pids, TInt interval, TFlt lambda);
 	std::string toString();
 	
 	// MNM_Pre_Routing operator+(MNM_Pre_Routing other); // plus other pouting class, for MSA optimization

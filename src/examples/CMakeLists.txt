@@ -62,3 +62,6 @@ target_link_libraries (test_SO_main PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INI
 
 #add_executable (test_load_path_table test_load_path_table.cpp)
 #target_link_libraries (test_load_path_table PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})
+
+#add_executable (test_bignetwork_pathset test_bignetwork_pathset.cpp)
+#target_link_libraries (test_bignetwork_pathset PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})

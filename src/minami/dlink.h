@@ -67,8 +67,8 @@ public:
   TFlt get_link_upper_PMC(TInt t);
   int update_dissipate();
   int is_congested_after(TInt t);
-  TInt next_pmc_time_lower(TInt t);
-  TInt next_pmc_time_upper(TInt t);
+  TInt next_pmc_time_lower(TInt t,TFlt unit_time);
+  TInt next_pmc_time_upper(TInt t,TFlt unit_time);
 
 
 
@@ -295,6 +295,7 @@ public:
   TFlt virtual get_link_tt() override;
 // private:
   std::unordered_map<MNM_Veh*, TInt> m_veh_queue;
+  std::deque<MNM_Veh*> m_veh_dequeue;
   TInt m_volume; //vehicle number, without the flow scalar
   TFlt m_lane_hold_cap;
   TFlt m_lane_flow_cap;

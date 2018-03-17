@@ -42,7 +42,7 @@ Path_Table *MNM_IO::load_path_table_ksp(std::string file_name, PNEGraph graph){
         _pathset = new MNM_Pathset();
         _path_table -> find(_origin_node_ID) -> second -> insert(std::pair<TInt, MNM_Pathset*>(_dest_node_ID, _pathset));
       // }
-      printf("Loading Path Table2!\n");
+      // printf("Loading Path Table2!\n");
         for (int _pid = 1;_pid<_words.size();_pid++){
           _path = new MNM_Path();
           _subwords = split(_words[_pid],',');
@@ -54,10 +54,10 @@ Path_Table *MNM_IO::load_path_table_ksp(std::string file_name, PNEGraph graph){
           for (size_t i = 0; i < _path -> m_node_vec.size() - 1; ++i){
             _from_ID = _path -> m_node_vec[i];
             _to_ID = _path -> m_node_vec[i+1];
-            printf("Loading Path Table2.5!\n");
-            std::cout<<_from_ID << "," << _to_ID <<std::endl;
+            // printf("Loading Path Table2.5!\n");
+            // std::cout<<_from_ID << "," << _to_ID <<std::endl;
             _link_ID = graph -> GetEI(_from_ID, _to_ID).GetId();
-            printf("Loading Path Table3!\n");
+            // printf("Loading Path Table3!\n");
             _path -> m_link_vec.push_back(_link_ID);
           }
           _path_table -> find(_origin_node_ID) -> second -> find(_dest_node_ID) -> second -> m_path_vec.push_back(_path);

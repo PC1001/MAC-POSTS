@@ -2,6 +2,8 @@
 
 #include "pre_routing.h"
 
+
+
 /**************************************************************************
                             Pre_Routing
 **************************************************************************/
@@ -25,12 +27,6 @@ MNM_Pre_Routing::MNM_Pre_Routing(Path_Table *path_table,MNM_OD_Factory *od_facto
 	// 		if (_pset -> m_path_vec.size() ==0)
 	// 			continue;
 	// 		else{
-
-
-
-
-
-
 
 	for (auto _d_it = od_factory -> m_destination_map.begin(); _d_it != od_factory -> m_destination_map.end(); _d_it++){
 	    _dest_node_ID = _d_it -> second -> m_dest_node -> m_node_ID;
@@ -122,15 +118,21 @@ int MNM_Pre_Routing::reassign_routing(TInt oid,TInt did, TInt pid, TInt interval
 			_path_demand != routing_table ->at(oid).at(did).end();_path_demand++){
 		if (_path_demand -> first == pid){
 			_path_demand -> second[interval] = (1-lambda) * _path_demand -> second[interval] + lambda * _total_demand;
-			std::cout <<  _path_demand -> first << "path : " <<(1-lambda) * _path_demand -> second[interval] + lambda * _total_demand << std::endl;
+			// std::cout <<  _path_demand -> first << "path : " <<(1-lambda) * _path_demand -> second[interval] + lambda * _total_demand << std::endl;
 		}else{
-			std::cout <<_path_demand -> first << "low path : " << (1-lambda) * _path_demand -> second[interval]<< std::endl;
+			// std::cout <<_path_demand -> first << "low path : " << (1-lambda) * _path_demand -> second[interval]<< std::endl;
 			_path_demand -> second[interval] = (1-lambda) * _path_demand -> second[interval];
 		}
 	}
 	// std::cout << "Within reassign:" << pid << std::endl;
 	return 0;
 }
+
+int MNM_Pre_Routing::reassign_routing_batch(TInt oid,TInt did, std::set<TInt> pids, TInt interval, TFlt lambda){
+	return 1;
+}
+
+
 
 
 std::string MNM_Pre_Routing::toString(){
@@ -157,14 +159,16 @@ std::string MNM_Pre_Routing::toString(){
 				for(int _kk = 0;_kk < 10;_kk++){
 					result += std::to_string(_portion[_kk]) +",";
 				}
-
 				result += "\n";
-
+				// for(int _kk = 0;_kk < 10;_kk++){
+				// 	for (size_t _l_it = 0;_l_it < _path->m_link_vec.size();_l_it++){
+				// 		result += std::to_string(_path->m_link_vec[_l_it]) + ",";
+				// 	}
+				// }
 			}
 		}
 	}
 	return result;
-
 }
 
 int MNM_Pre_Routing::update_routing_table_MSA(MNM_PMC_Table pmc_table, float lambda){

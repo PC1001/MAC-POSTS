@@ -868,6 +868,7 @@ MNM_Dlink_Pq2::MNM_Dlink_Pq2(   TInt ID,
   m_veh_queue = std::unordered_map<MNM_Veh*, TInt>();
   m_volume = TInt(0);
   m_unit_time = unit_time;
+  m_veh_dequeue = std::deque<MNM_Veh*>();
 }
 
 
@@ -889,6 +890,7 @@ int MNM_Dlink_Pq2::clear_incoming_array() {
     _veh = m_incoming_array.front();
     m_incoming_array.pop_front();
     m_veh_queue.insert(std::pair<MNM_Veh*, TInt>(_veh, TInt(0)));
+    m_veh_dequeue.push_front(_veh);
   }
   m_volume = TInt(m_finished_array.size() + m_veh_queue.size());
   // move_veh_queue(&m_incoming_array, , m_incoming_array.size());
@@ -911,23 +913,46 @@ void MNM_Dlink_Pq2::print_info()
 
 int MNM_Dlink_Pq2::evolve(TInt timestamp)
 {
-  std::unordered_map<MNM_Veh*, TInt>::iterator _que_it = m_veh_queue.begin();
+  
+  if (m_veh_dequeue.size()==0)
+    return 0;
+  MNM_Veh* _veh = m_veh_dequeue.back();
   TFlt _cap = m_lane_flow_cap * TFlt(m_number_of_lane) * m_unit_time * m_flow_scalar;
-  while (_que_it != m_veh_queue.end()) {
-    if (_que_it -> second >= m_max_stamp && m_finished_array.size() < _cap) {
-      m_finished_array.push_back(_que_it -> first);
-      _que_it = m_veh_queue.erase(_que_it); //c++ 11
-    }
-    else {
-      _que_it -> second += 1;
-      _que_it ++;
+  
+  while (m_veh_dequeue.size()>0){
+    if (m_veh_queue[_veh] >= m_max_stamp && m_finished_array.size() < _cap){
+      m_finished_array.push_back(_veh);
+      m_veh_queue.erase(_veh);
+      m_veh_dequeue.pop_back();
+      _veh = m_veh_dequeue.back();
+    }else{
+      break;
     }
   }
+  for(auto _deq_it =m_veh_dequeue.begin();_deq_it!=m_veh_dequeue.end();_deq_it++){
+    m_veh_queue[*_deq_it] +=1;
+  }
+  // std::cout << " finish evolve" << std::endl;
+  return 1;
 
-  /* volume */
-  // m_volume = TInt(m_finished_array.size() + m_veh_queue.size());
 
-  return 0;
+  // std::unordered_map<MNM_Veh*, TInt>::iterator _que_it = m_veh_queue.begin();
+  // TFlt _cap = m_lane_flow_cap * TFlt(m_number_of_lane) * m_unit_time * m_flow_scalar;
+  // while (_que_it != m_veh_queue.end()) {
+  //   if (_que_it -> second >= m_max_stamp && m_finished_array.size() < _cap) {
+  //     m_finished_array.push_back(_que_it -> first);
+  //     _que_it = m_veh_queue.erase(_que_it); //c++ 11
+  //   }
+  //   else {
+  //     _que_it -> second += 1;
+  //     _que_it ++;
+  //   }
+  // }
+
+  // /* volume */
+  // // m_volume = TInt(m_finished_array.size() + m_veh_queue.size());
+
+  // return 0;
 }
 
 TFlt MNM_Dlink_Pq2::get_link_flow()
@@ -1061,16 +1086,37 @@ int MNM_Dlink_Pq::is_congested(){
 }
 
 int MNM_Dlink_Pq2::is_congested(){
-  std::unordered_map<MNM_Veh*, TInt>::iterator _que_it = m_veh_queue.begin();
-  if (m_finished_array.size()>0) return 1;
-  while(_que_it!= m_veh_queue.end()){
-    if(_que_it->second > m_max_stamp){
-      return 1;
-    }else{
-      _que_it ++;
-    }
-  }
-  return 0;
+  // std::unordered_map<MNM_Veh*, TInt>::iterator _que_it = m_veh_queue.begin();
+  // if(m_veh_queue.size()!=0)
+    // std::cout << m_veh_queue.end()->second << std::endl;
+  // if (m_veh_queue.size() != m_veh_dequeue.size()){
+  //   std::cout<<"Wrong with the sizes" <<std::endl;
+  //   exit(1);
+  // }
+  if (m_veh_dequeue.size() > 0 && m_veh_queue[m_veh_dequeue.back()] > m_max_stamp){
+    return 1;
+  }else
+    return 0;
+  // if(m_veh_queue.size()!=0 && m_veh_queue.back().second > m_max_stamp)
+  //   return 1;
+  // else
+  //   return 0;
+
+  // if (m_finished_array.size()>0) return 1;
+  // while(_que_it!= m_veh_queue.end()){
+  //   if(_que_it->second > m_max_stamp){
+  //     if (m_link_ID == TInt(2))
+  //     std::cout<<_que_it->second<<std::endl;
+  //     return 1;
+  //   }else{
+  //     if (m_link_ID == TInt(2))
+  //     std::cout<<_que_it->second << ",";
+  //     _que_it ++;
+  //   }
+  // }
+  // if (m_link_ID == TInt(2))
+  // std::cout<<std::endl;
+  // return 0;
   // check if the link is congested at current time
   // 0: inflow equal to capacity and no queued flow ()
   // 1: congested 
@@ -1136,19 +1182,19 @@ int MNM_Dlink::is_congested_after(TInt t){
 }
 
 
-TInt MNM_Dlink::next_pmc_time_lower(TInt t){
+TInt MNM_Dlink::next_pmc_time_lower(TInt t,TFlt unit_time){
   int _cgst = is_congested_after(t);
   
   if(_cgst==1){
     int _diss_time = (*congestion_dissipate)[t];
     return TInt(_diss_time);
   }else{
-    return TInt(get_link_fftt()+t);
+    return TInt(std::floor(get_link_fftt()/unit_time+t));
   }
 }
 
 
-TInt MNM_Dlink::next_pmc_time_upper(TInt t){
+TInt MNM_Dlink::next_pmc_time_upper(TInt t,TFlt unit_time){
   // std::cout << "Link ID:" << m_link_ID << std::endl;
   // std::cout<< "FFs:"<<m_ffs << std::endl;
   // std::cout <<  "Here" <<congestion_dissipate -> size() << std::endl;
@@ -1160,7 +1206,7 @@ TInt MNM_Dlink::next_pmc_time_upper(TInt t){
     int _diss_time = (*congestion_dissipate)[t];
     return TInt(_diss_time);
   }else{
-    return TInt(get_link_fftt()+t);
+    return TInt(std::floor(get_link_fftt()/unit_time+t));
   }
 
 }

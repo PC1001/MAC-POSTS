@@ -1,26 +1,28 @@
 #include "dta.h"
 #include <limits>
+#include <set>
 // method of MNM_Dta class that used for SO-DTA
 
 TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 	//TODO 
 	TFlt _pmc = TFlt(0.0);
 	TInt _track_time = t;
-	std::cout<< "Computing upper pmc ..............." << std::endl;
+	// std::cout<< "Computing upper pmc ..............." << std::endl;
 	for (size_t _l_it = 0;_l_it < path->m_link_vec.size();_l_it++){
-		std::cout << _pmc << "," << _track_time << std::endl;
+		// std::cout << _pmc << "," << _track_time << "," << m_link_factory -> get_link(path->m_link_vec[_l_it]) -> m_link_ID<< std::endl;
 		// int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(_track_time);
 		// _pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt();
 		// if (ifcongest!=-1){
 		if (m_link_factory -> get_link(path->m_link_vec[_l_it]) -> m_ffs > 1000)continue;
-		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_upper(_track_time) -_track_time;
+		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_upper(_track_time,m_unit_time) -_track_time;
 		// }
-		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time);
+		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time,m_unit_time);
 
-	// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
+	// std::cout<<  "This tt :" <<  m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_tt() 
+	// 	 << ", real time tt: " <<  m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt()
 	//  	<< std::endl;
 	}
-	std::cout << "..................................." << std::endl;
+	// std::cout << "..................................." << std::endl;
 	return _pmc;
 }
 
@@ -32,9 +34,9 @@ TFlt MNM_Dta::compute_pmc_lower(TInt t, MNM_Path* path){
 		// int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(_track_time);
 		// _pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt();
 		// if (ifcongest==1){
-		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_lower(_track_time) -_track_time;
+		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_lower(_track_time,m_unit_time) -_track_time;
 		// }
-		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time);
+		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time,m_unit_time);
 	// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
 	//  	<< std::endl;
 	}
@@ -76,8 +78,8 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 	// compute the PMC for each path in path set
 	// and update the prerouting table
 	// 
-	std::cout << "End time:" << _end_int << std::endl;
-	std::cout << "unit time:" << m_unit_time << std::endl;
+	// std::cout << "End time:" << _end_int << std::endl;
+	// std::cout << "unit time:" << m_unit_time << std::endl;
 	TInt _t;
 	for (TInt _int = 0; _int < _end_int;_int++){
 		_t = _int * m_assign_freq;
@@ -112,6 +114,73 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 	}
 	std::cout << pre_routing -> toString() << std::endl;
 
+}
+
+
+
+
+int  MNM_Dta::route_update_PHA(TFlt lambda){
+
+	TInt _assign_inter = m_start_assign_interval;
+	TInt _cur_int = 0;
+	TInt _end_int = m_total_assign_inter; 
+	TInt _oid;
+	TInt _did;
+	MNM_Pathset* _pset;
+	MNM_Pre_Routing *pre_routing = m_routing-> m_pre_routing;
+	Path_Table * _path_table = pre_routing->m_path_table;
+	MNM_Path * _path;
+	TFlt _thisupmc;
+	TInt _min_path_id;
+	TFlt _min_uPMC; 
+	TFlt _min_lPMC;
+	TFlt _thislpmc;
+
+	TInt _t;
+	for (TInt _int = 0; _int < _end_int;_int++){
+		_t = _int * m_assign_freq;
+
+		for (auto _ops = _path_table -> begin();_ops != _path_table ->end(); _ops++){
+			_oid = _ops -> first;
+			for (auto _dps = _ops -> second -> begin(); _dps != _ops -> second -> end(); _dps++){
+				_did = _dps -> first;
+				_pset = _dps -> second;
+				if (_pset -> m_path_vec.size() ==0)
+					continue;
+				else{
+					_min_uPMC = TFlt(std::numeric_limits<double>::max());
+					_min_lPMC = TFlt(std::numeric_limits<double>::max());
+					std::set<TInt> _psmp = std::set<TInt>();
+
+					for(int _pit = 0;_pit < _pset -> m_path_vec.size() ; _pit ++){
+						_path  = _pset -> m_path_vec[_pit];
+						_thisupmc = compute_pmc_upper(_t,_path);
+						_thislpmc = compute_pmc_lower(_t,_path);
+						if (_thisupmc < _min_lPMC){
+							_psmp.clear();
+							_psmp.insert(TInt(_pit));
+							_min_lPMC = _thislpmc;
+							_min_uPMC = _thisupmc;
+						}else if(_thislpmc > _min_uPMC){
+							continue;
+						}else{
+							_psmp.insert(TInt(_pit));
+							_min_lPMC = std::min(_min_lPMC,_thislpmc);
+							_min_uPMC = std::max(_min_uPMC,_thisupmc);
+						}	
+					}
+					pre_routing -> reassign_routing_batch(_oid,_did,_psmp,_int,lambda);
+
+
+					// _min_path_id = 0;
+					// _min_PMC = TFlt(std::numeric_limits<float>::max());
+				}
+			}
+		}
+	}
+
+	
+	return 0;
 }
 
 

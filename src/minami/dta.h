@@ -57,7 +57,7 @@ public:
   TFlt compute_pmc_upper(TInt t, MNM_Path* path);
   TFlt compute_pmc_lower(TInt t, MNM_Path* path);
   int route_update_MSA(TFlt lambda); // no subgradient
-  int route_update_subgradient();
+  int route_update_PHA(TFlt lambda);
   int link_update_dissipateTime();
   // int link_update_iscongested();
   int reinstall_cumulative_curve();
@@ -73,7 +73,6 @@ namespace MNM
   int print_vehicle_info(MNM_Veh_Factory *veh_factory);
   bool has_running_vehicle(MNM_Veh_Factory *veh_factory);
   int demand_OD_update(MNM_OD_Factory *m_od_factory,MNM_Routing_Predetermined *m_routing);
-
 }
 
 #endif

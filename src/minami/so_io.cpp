@@ -62,9 +62,10 @@ Path_Table *MNM_IO::load_path_table_ksp(std::string file_name, PNEGraph graph){
           }
           _path_table -> find(_origin_node_ID) -> second -> find(_dest_node_ID) -> second -> m_path_vec.push_back(_path);
         }
-        _path_table_file.close();
+        
 
     }
+    _path_table_file.close();
   }
 
   else{
@@ -72,6 +73,7 @@ Path_Table *MNM_IO::load_path_table_ksp(std::string file_name, PNEGraph graph){
     exit(-1);
   }
    printf("Finish Loading Path Table!\n");
+   // MNM::save_path_table(_path_table,)
   return _path_table;
 
 }

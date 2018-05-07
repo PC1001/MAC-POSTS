@@ -57,11 +57,18 @@
 #add_executable (test_ksp test_ksp.cpp)
 #target_link_libraries (test_ksp PUBLIC Snap minami adv_ds)
 
+add_executable (write_path_table write_path_table.cpp)
+target_link_libraries (write_path_table PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})
+
+
 add_executable (test_SO_main test_SO_main.cpp)
 target_link_libraries (test_SO_main PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})
+
+add_executable (test_SO_main2 test_SO_main2.cpp)
+target_link_libraries (test_SO_main2 PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})
 
 #add_executable (test_load_path_table test_load_path_table.cpp)
 #target_link_libraries (test_load_path_table PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})
 
-#add_executable (test_bignetwork_pathset test_bignetwork_pathset.cpp)
-#target_link_libraries (test_bignetwork_pathset PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})
+add_executable (test_bignetwork_pathset test_bignetwork_pathset.cpp)
+target_link_libraries (test_bignetwork_pathset PUBLIC Snap minami adv_ds ${CMAKE_THREAD_INIT})

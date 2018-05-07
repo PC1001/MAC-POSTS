@@ -12,33 +12,26 @@ int main(int argc, char *argv[])
 
   //3 routes case
   // std::string path_name = "../../data/input_files_test_SO_3link_LWR";
-  
-  // std::string path_table = "../../path_generator/result2.txt";
-
-  //philly network
   // std::string path_name ="../../data/input_files_new_philly";
+  // std::string path_table = "../../path_generator/result2.txt";
   // std::string path_table = "../../build/examples/path_table_new_philly";
 
   //------
 
 
   //12 link case
-  // std::string path_name = "../../data/input_files_12_links";
-  // std::string path_table = "../../path_generator/path_table1.txt";
-
-
-  // PGH network
-  std::string path_name ="../../data/input_files_PGH";
-  std::string path_table = "../../build/examples/path_table_PGH";
-
+  std::string path_name = "../../data/input_files_13_links_debug";
+  std::string path_table = "../../path_generator/path_table1.txt";
 
 
   // ----------
 
   MNM_Dta *test_dta = new MNM_Dta(path_name);
+
   // std::cout <<"why" <<std::endl;
   test_dta -> m_path_file = path_table;
   test_dta -> build_from_files();
+  
   
   printf("Hooking......\n");
   TFlt lambda = TFlt(0.1);
@@ -46,7 +39,7 @@ int main(int argc, char *argv[])
   // printf("Checking......\n");
   // test_dta -> is_ok();
   // MNM::save_path_table(((MNM_Routing_Predetermined )test_dta -> m_routing) -> m_path_table);
-  int maxiter = 50;
+  int maxiter = 10;
   std::vector<TFlt> tc;
   // std::cout << test_dta -> m_routing -> m_pre_routing -> toString() << std::endl;
 
@@ -92,8 +85,8 @@ int main(int argc, char *argv[])
     printf("Hooking......xxx\n");
     TFlt thistc = test_dta -> total_TT();
     test_dta -> link_update_dissipateTime();
-    // test_dta -> route_update_MSA(lambda);
-    test_dta -> route_update_PHA(lambda,true);
+    test_dta -> route_update_MSA(lambda,true);
+    // test_dta -> route_update_PHA(lambda,true);
     
     // MNM_IO::dump_cumulative_curve("../../test_results", test_dta->m_link_factory);
     //*************test print the two vectors for the links of SO-DTA

@@ -54,15 +54,31 @@ int MNM_Dta::set_routing()
     m_routing = new MNM_Routing_Hybrid(m_file_folder, m_graph, m_statistics,
                                    m_od_factory, m_node_factory, m_link_factory);
   }else if(m_config ->get_string("routing_type")=="Predetermined"){
-    
+    Path_Table *_path_table;
     // Path_Table *_path_table = MNM::build_pathset(m_graph, m_od_factory, m_link_factory);
-    Path_Table *_path_table = MNM_IO::load_path_table_ksp(m_path_file,m_graph);
+    // if (m_path_file!= "none"){
+       _path_table= MNM_IO::load_path_table_ksp(m_path_file,m_graph);
+    // }
+    // std::cout << "save path table" << std::endl;
+    // MNM::save_path_table(_path_table,m_od_factory);
     MNM_Pre_Routing *_pre_routing = new MNM_Pre_Routing(_path_table,m_od_factory);
     m_routing = new MNM_Routing_Predetermined(m_graph,m_od_factory,m_node_factory
       ,m_link_factory,_path_table,_pre_routing,m_total_assign_inter);
+    // MNM:save_path_table()
 
     //need to initiaize pmc table
-  }else{
+  }else if(m_config ->get_string("routing_type")=="GenerateTable"){
+    // Path_Table *_path_table = MNM::build_pathset(m_graph, m_od_factory, m_link_factory);
+    std::cout << "save path table" << std::endl;
+    // MNM::save_path_table(_path_table,m_od_factory);
+  }else if(m_config ->get_string("routing_type")=="Pretermined_old"){
+    Path_Table *_path_table = MNM_IO::load_path_table(m_path_file,m_graph,211621);
+    MNM_Pre_Routing *_pre_routing = new MNM_Pre_Routing(_path_table,m_od_factory);
+    m_routing = new MNM_Routing_Predetermined(m_graph,m_od_factory,m_node_factory
+      ,m_link_factory,_path_table,_pre_routing,m_total_assign_inter);
+  }
+
+  else{
     std::cout << "wrong routing type\n" << std::endl;
     exit(1);
   }
@@ -89,6 +105,7 @@ int MNM_Dta::build_from_files()
   MNM_IO::build_demand(m_file_folder, m_config, m_od_factory);
   build_workzone();
   set_statistics();
+  // std::cout << "Here why" << std::endl;
   set_routing();
   return 0;  
 }
@@ -368,6 +385,7 @@ int MNM_Dta::check_origin_destination_connectivity()
   TInt _dest_node_ID;
   std::unordered_map<TInt, TInt> _shortest_path_tree = std::unordered_map<TInt, TInt>();
   std::unordered_map<TInt, TFlt> _cost_map;
+  bool _flag = true;
   for (auto _map_it : m_link_factory -> m_link_map){
     _cost_map.insert(std::pair<TInt, TFlt>(_map_it.first, TFlt(1)));
   }
@@ -375,15 +393,17 @@ int MNM_Dta::check_origin_destination_connectivity()
   for (auto _it = m_od_factory -> m_destination_map.begin(); _it != m_od_factory -> m_destination_map.end(); _it++){
     _dest = _it -> second;
     _dest_node_ID = _dest -> m_dest_node -> m_node_ID;
-    MNM_Shortest_Path::all_to_one_FIFO(_dest_node_ID, m_graph, _cost_map, _shortest_path_tree);
+    // MNM_Shortest_Path::all_to_one_FIFO(_dest_node_ID, m_graph, _cost_map, _shortest_path_tree);
+    MNM_Shortest_Path::all_to_one_Dijkstra(_dest_node_ID, m_graph, _cost_map, _shortest_path_tree);
     for (auto _map_it : m_od_factory -> m_origin_map){
       if (_shortest_path_tree.find(_map_it.second -> m_origin_node -> m_node_ID)-> second == -1){
-        return false;
+        // std::cout << _map_it.second -> m_origin_node ->m_node_ID << "," << _dest_node_ID << std::endl;
+        _flag = false;
       }
     }
 // }
   }
-  return true;
+  return _flag;
 }
 
 bool MNM_Dta::finished_loading(int cur_int)

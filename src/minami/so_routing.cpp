@@ -59,6 +59,8 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
       // here assume that the order of dest in veh deq is the same as in the mdemand of origin
       // this is ensured by the release function of Origin
       auto _demand_it = _origin -> m_demand.begin();
+      // std::cout << _origin -> m_demand.size() << std::endl;
+      if (_origin -> m_demand.size()==0)continue;
       _destination = _demand_it -> first;
       TFlt _thisdemand = _demand_it ->second[_ass_int] * _flow_scalar;
       
@@ -69,7 +71,8 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
         //    ", Origin size: "<< _origin_node ->m_in_veh_queue.size()<<std::endl;
       for (auto _veh_it = _origin_node -> m_in_veh_queue.begin(); _veh_it!=_origin_node -> m_in_veh_queue.end(); _veh_it++){
         _veh = *_veh_it;
-        if(_veh -> get_destination() != _destination &&_remain_demand<=0 ){
+        // if(_veh -> get_destination() != _destination &&_remain_demand<=0 ){
+        if(_veh -> get_destination()->m_Dest_ID != _destination->m_Dest_ID){
 
           _id_path = 0;
           _destination = _veh -> get_destination();
@@ -77,9 +80,6 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
         second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int] * _flow_scalar;
           _thisdemand = _origin -> m_demand.find(_destination) -> second[_ass_int] * _flow_scalar;
 
-
-
-          
         }else if(_remain_demand<=0 && _thisdemand > 0){
 
           _id_path ++;
@@ -87,32 +87,58 @@ int MNM_Routing_Predetermined::update_routing(TInt timestamp){
           //  << _destination -> m_dest_node -> m_node_ID << "," << std::endl; //never fall in this branch, why?
           _remain_demand = m_pre_routing -> routing_table -> find(_origin -> m_origin_node -> m_node_ID)->
         second.find(_destination -> m_dest_node -> m_node_ID)->second.find(_id_path) -> second[_ass_int]* _flow_scalar;
-        }else if(_remain_demand >0 && _thisdemand <0){
-          std::cout<< "somthing wrong with the demand " <<std::endl;
-          exit(1);
         }
+        // else if(_remain_demand >0 && _thisdemand <0){
+        //   std::cout << _remain_demand << "," << _thisdemand << ",path:" << _id_path << "," << std::endl;
+        //   std::cout<< "somthing wrong with the demand " <<std::endl;
+        //   exit(1);
+        // }
         _thisdemand--;
         _remain_demand--;
         _route_path = m_path_table -> find(_veh -> get_origin() -> m_origin_node  -> m_node_ID) -> second
                         -> find(_veh -> get_destination() -> m_dest_node  -> m_node_ID) -> second 
                         -> m_path_vec[_id_path];
         std::deque<TInt> *_link_queue = new std::deque<TInt>();
+
+        // std::cout << _origin -> m_Origin_ID << "," << _destination->m_Dest_ID << "," << _id_path << std::endl;
+        // std::cout <<  ", m link vec length" <<     m_path_table -> find(_veh -> get_origin() -> m_origin_node  -> m_node_ID) -> second
+                        // -> find(_veh -> get_destination() -> m_dest_node  -> m_node_ID) -> second 
+                        // -> m_path_vec.size() << std::endl;
+        // std::cout <<  ", m link vec length" << _route_path -> m_link_vec.size() << std::endl;
+        // std::cout << " link queue length" << _link_queue
         std::copy(_route_path -> m_link_vec.begin(), _route_path -> m_link_vec.end(), std::back_inserter(*_link_queue));
         m_tracker.insert(std::pair<MNM_Veh*, std::deque<TInt>*>(_veh, _link_queue));
+        _next_link_ID = _link_queue -> front();
+        _next_link = m_link_factory -> get_link(_next_link_ID);
+        _veh -> set_next_link(_next_link);
+        _link_queue->pop_front();
+        // if (_veh->m_veh_ID == 1){
+        //   std::cout << "Vehicle:"<<_veh->m_veh_ID <<", Origin:" << _node_ID << ",Destination" << _destination-> m_Dest_ID<<",path:";
+        //   for(int i=0;i<_link_queue->size();i++){
+        //     std::cout << _link_queue->at(i) << ",";
+        //   }
+        //   std::cout<<std::endl;
+        // }
+        
       }
       // std::cout<<"this deman:" << _thisdemand   << ", remaining demand:" << _remain_demand <<std::endl;
 
     }
-    for (auto _veh_it = _origin_node -> m_in_veh_queue.begin(); _veh_it!=_origin_node -> m_in_veh_queue.end(); _veh_it++){
-        _veh = *_veh_it;
-        _next_link_ID = m_tracker.find(_veh) -> second -> front();
-        _next_link = m_link_factory -> get_link(_next_link_ID);
-        _veh -> set_next_link(_next_link);
-        m_tracker.find(_veh) -> second -> pop_front();
-        // std::cout << "vehicle " << _veh->m_veh_ID<<" next link: " << _next_link ->m_link_ID <<std::endl;
-    }
+    // std::cout << "Finish an update process" << std::endl;
+    // for (auto _veh_it = _origin_node -> m_in_veh_queue.begin(); _veh_it!=_origin_node -> m_in_veh_queue.end(); _veh_it++){
+    //     _veh = *_veh_it;
+    //     _next_link_ID = m_tracker.find(_veh) -> second -> front();
+    //     _next_link = m_link_factory -> get_link(_next_link_ID);
+    //     _veh -> set_next_link(_next_link);
+    //     if (_veh->m_veh_ID ==1){
+    //       std::cout << "Here 00 " << _next_link_ID << std::endl;
+    //     }
+    //     m_tracker.find(_veh) -> second -> pop_front();
+    //     // std::cout << "vehicle " << _veh->m_veh_ID<<" next link: " << _next_link ->m_link_ID <<std::endl;
+    // }
 
   }
+
 
   // step 1: register vehilces in the Origin nodes to m_tracker, update their next link
 

@@ -112,6 +112,7 @@ public:
   //SO-DTA
   int virtual is_congested() override;
 
+
 // private:
   class Ctm_Cell;
   int init_cell_array(TFlt unit_time, TFlt std_cell_length, TFlt lane_hold_cap_last_cell);
@@ -124,6 +125,8 @@ public:
   TFlt m_wave_ratio;
   TFlt m_last_wave_ratio;
   std::vector<Ctm_Cell*> m_cell_array;
+
+  int m_congested;
 };
 
 

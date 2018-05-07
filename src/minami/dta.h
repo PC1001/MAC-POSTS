@@ -56,8 +56,8 @@ public:
   int update_pmc_upper();
   TFlt compute_pmc_upper(TInt t, MNM_Path* path);
   TFlt compute_pmc_lower(TInt t, MNM_Path* path);
-  int route_update_MSA(TFlt lambda); // no subgradient
-  int route_update_PHA(TFlt lambda);
+  int route_update_MSA(TFlt lambda,bool verbose); // no subgradient
+  int route_update_PHA(TFlt lambda,bool verbose);
   int link_update_dissipateTime();
   // int link_update_iscongested();
   int reinstall_cumulative_curve();

@@ -84,6 +84,7 @@ int MNM_Statistics::init_record()
 
       if (m_self_config -> get_int("volume_load_automatic_rec") == 1){
         _file_name = m_file_folder + "/" + m_self_config -> get_string("rec_folder") + "/MNM_output_load_interval_volume";
+        // std::cout << _file_name << std::endl;
         m_load_interval_volume_file.open(_file_name, std::ofstream::out);   
         if (!m_load_interval_volume_file.is_open()){
           printf("Error happens when open m_load_interval_volume_file\n");

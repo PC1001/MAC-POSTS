@@ -113,7 +113,7 @@ MNM_Dlink *MNM_Link_Factory::make_link( TInt ID,
       _link = new MNM_Dlink_Ctm(ID, lane_hold_cap, lane_flow_cap, number_of_lane, length, ffs, unit_time, flow_scalar);
       break;
     case MNM_TYPE_PQ:
-      _link = new MNM_Dlink_Pq2(ID, lane_hold_cap, lane_flow_cap, number_of_lane, length, ffs, unit_time, flow_scalar);
+      _link = new MNM_Dlink_Pq(ID, lane_hold_cap, lane_flow_cap, number_of_lane, length, ffs, unit_time, flow_scalar);
       break;
     case MNM_TYPE_LQ:
       _link = new MNM_Dlink_Lq(ID, lane_hold_cap, lane_flow_cap, number_of_lane, length, ffs, unit_time, flow_scalar);

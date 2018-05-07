@@ -98,6 +98,10 @@ MNM_Dlink_Ctm::MNM_Dlink_Ctm( TInt ID,
                               TFlt flow_scalar)
   : MNM_Dlink::MNM_Dlink ( ID, number_of_lane, length, ffs )
 {
+
+  //SO-DTA
+  m_congested = 0;
+  //end --------
   if (lane_hold_cap < 0){
     printf("lane_hold_cap can't be less than zero, current link ID is %d\n", m_link_ID());
     exit(-1);
@@ -196,24 +200,43 @@ void MNM_Dlink_Ctm::print_info() {
 
 int MNM_Dlink_Ctm::update_out_veh()
 {
-  TFlt _temp_out_flux, _supply, _demand;
+  TFlt _temp_out_flux, _supply, _demand,_lastdemand,_lastsupply;
+  int _eqaulCap = 0;
   if(m_num_cells > 1) // if only one cell, no update is needed
   {
     for (int i = 0; i < m_num_cells - 1; ++i)
     {
       _demand = m_cell_array[i]->get_demand();
       _supply = m_cell_array[i+1]->get_supply();
+      if(i!=0){
+        if (_lastdemand > _supply){
+          m_congested = 1;
+        }else if(_lastdemand == _supply){
+          _eqaulCap = 1;
+        }
+      }
+      // if (_supply < m_cell_array[i+1]-> m_flow_cap){
+      //   m_congested = 1;
+      // }else if(_supply  == m_cell_array[i+1]-> m_flow_cap){
+      //   _eqaulCap = 1;
+
+      // }
+      _lastdemand = _demand;
       _temp_out_flux = MNM_Ults::min(_demand, _supply) * m_flow_scalar;
       m_cell_array[i] -> m_out_veh= MNM_Ults::round(_temp_out_flux); 
     }
   }
   m_cell_array[m_num_cells - 1] -> m_out_veh = m_cell_array[m_num_cells - 1] -> m_veh_queue.size();
+  if (m_congested==0 && _eqaulCap ==1){
+    m_congested =-1;
+  }
   return 0;
 }
 
 int MNM_Dlink_Ctm::evolve(TInt timestamp)
 {
   // printf("update_out_veh\n");
+  m_congested = 0;
   update_out_veh();
   TInt _num_veh_tomove;
   // printf("move previou cells\n");
@@ -647,21 +670,41 @@ int MNM_Cumulative_Curve::shrink(TInt number)
 
 int MNM_Cumulative_Curve::add_increment(std::pair<TFlt, TFlt> r)
 {
+  // if (m_recorder.size() == 0){
+  //   add_record(r);
+  //   return 0;
+  // }
+  // // std::pair <TFlt, TFlt> _best = *std::max_element(m_recorder.begin(), m_recorder.end(), pair_compare);
+  // std::pair <TFlt, TFlt> _best = m_recorder[m_recorder.size() - 1];
+  // r.second += _best.second;
+  // // printf("New r is <%lf, %lf>\n", r.first(), r.second());
+  // m_recorder.push_back(r);
+  // return 0;
+
   if (m_recorder.size() == 0){
-    add_record(r);
-    return 0;
+      add_record(r);
+      return 0;
+    }
+  // std::pair <TFlt, TFlt> _best = *std::max_element(m_recorder.begin(), m_recorder.end(), pair_compare);
+  std::pair <TFlt, TFlt> _best = m_recorder[m_recorder.size() - 1];
+  if (r.first < _best.first){
+    throw std::runtime_error("Error, MNM_Cumulative_Curve::add_increment, early time index");
   }
-  std::pair <TFlt, TFlt> _best = *std::max_element(m_recorder.begin(), m_recorder.end(), pair_compare);
-  r.second += _best.second;
-  // printf("New r is <%lf, %lf>\n", r.first(), r.second());
-  m_recorder.push_back(r);
+  if (r.first == _best.first){
+    m_recorder[m_recorder.size() - 1].second += r.second;
+  }
+  else{
+    r.second += _best.second;
+    // printf("New r is <%lf, %lf>\n", r.first(), r.second());
+    m_recorder.push_back(r); 
+  }
   return 0;
 }
 
 
 TFlt MNM_Cumulative_Curve::get_result(TFlt time)
 {
-  arrange();
+  // arrange();
   if (m_recorder.size() == 0){
     return TFlt(0);
   }
@@ -1133,8 +1176,9 @@ int MNM_Dlink_Pq2::is_congested(){
 int MNM_Dlink_Ctm::is_congested(){
   // check if the link is congested at current time
   // return (m_cell_array[0] -> m_volume) < (m_cell_array[0] -> m_flow_cap) ;
-  if (m_finished_array.size()>0)return 1;
-  else return 0;
+  // if (m_finished_array.size()>0)return 1;
+  // else return 0;
+  return m_congested;
 }
 
 int MNM_Dlink_Lq::is_congested(){
@@ -1152,7 +1196,12 @@ int MNM_Dlink::update_dissipate(){
   //since the DNL will continue untill all vehicles arrives its destinations
   //we should expected that the the final element of indicator_congestion should be -1
   int lasti = 0;
-  // std::cout << "length"<<indicator_congestion -> size() << std::endl;
+  // std::cout << "Print the congestion indicator:" << std::endl;
+  // for (int i=0;i<indicator_congestion->size();i++){
+  //   std::cout << indicator_congestion->at(i) << ",";
+  // }
+  // std::cout << std::endl;
+  congestion_dissipate->push_back(0);
   for (size_t i = 0; i < indicator_congestion -> size();i++){
     // std::cout<< (*indicator_congestion)[i] << ",";
     if((*indicator_congestion)[i] == -1 ){
@@ -1173,24 +1222,48 @@ int MNM_Dlink::update_dissipate(){
     }
   }
   // std::cout << std::endl;
+  // std::cout << congestion_dissipate->size() << ":" << std::endl;
+  // for (int i=0;i < congestion_dissipate->size();i++){
+  //   std::cout << congestion_dissipate->at(i)<<",";
+  // }
+  // std::cout << std::endl;
 
   return 1;
 }
 
 int MNM_Dlink::is_congested_after(TInt t){
+
+  // std::cout << t <<  ","<<  indicator_congestion->size()<< std::endl;
+  // if (t > indicator_congestion->size()){
+  //   std::cout <<"Abnormal here:" <<indicator_congestion->size() << "," << t  <<std::endl;
+  //   std::cout << (*indicator_congestion)[t] << std::endl;
+  // }
+  if (t > indicator_congestion->size()){
+    return -1;
+  }
   return (*indicator_congestion)[t];
 }
 
 
 TInt MNM_Dlink::next_pmc_time_lower(TInt t,TFlt unit_time){
+  // if (t > indicator_congestion->size()){
+  //   std::cout <<"Abnormal:" <<indicator_congestion->size() << "," << t  <<std::endl;
+  //   std::cout << (*indicator_congestion)[t] << std::endl;
+  // }
   int _cgst = is_congested_after(t);
-  
+  TInt result;
   if(_cgst==1){
     int _diss_time = (*congestion_dissipate)[t];
-    return TInt(_diss_time);
+    // std::cout << "used disstime" << _diss_time << std::endl;
+    result =  TInt(_diss_time);
   }else{
-    return TInt(std::floor(get_link_fftt()/unit_time+t));
+    // std::cout << "used fftt" << TInt(std::floor(get_link_fftt()/unit_time+t)) << std::endl;
+    result =  TInt(std::floor(get_link_fftt()/unit_time+t));
   }
+  // if (result > indicator_congestion->size()){
+  //   std::cout <<"Abnormal:" <<indicator_congestion->size() << "," << t  <<std::endl;
+  // }
+  return result;
 }
 
 
@@ -1200,13 +1273,21 @@ TInt MNM_Dlink::next_pmc_time_upper(TInt t,TFlt unit_time){
   // std::cout <<  "Here" <<congestion_dissipate -> size() << std::endl;
   // std::cout << indicator_congestion -> size() << std::endl;
   // std::cout<< " At time:" << t ;
+  TInt result;
   int _cgst = is_congested_after(t);
   // std::cout<< ", is congested?:" << _cgst  <<std::endl;
   if(_cgst!=-1){
     int _diss_time = (*congestion_dissipate)[t];
-    return TInt(_diss_time);
+    // std::cout << "used disstime" << _diss_time << " at " << t << std::endl;
+    result =  TInt(_diss_time);
   }else{
-    return TInt(std::floor(get_link_fftt()/unit_time+t));
+    // std::cout << "used fftt" << TInt(std::floor(get_link_fftt()/unit_time+t)) << std::endl;
+    result =  TInt(std::floor(get_link_fftt()/unit_time+t));
   }
+    // if (result > indicator_congestion->size()){
+    // std::cout <<"Abnormal:" <<indicator_congestion->size() << "," << t  <<std::endl;
+  // }
+
+  return result;
 
 }

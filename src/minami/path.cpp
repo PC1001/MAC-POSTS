@@ -92,13 +92,20 @@ MNM_Path *extract_path(TInt origin_ID, TInt dest_ID, std::unordered_map<TInt, TI
   TInt _current_node_ID = origin_ID;
   TInt _current_link_ID = -1;
   MNM_Path *_path = new MNM_Path();
+  // std::cout << "extract start"<< std::endl;
   while(_current_node_ID != dest_ID){
+    // std::cout << "extract a"<< std::endl;
     _current_link_ID = output_map[_current_node_ID];
+    // std::cout << "extract b"<< std::endl;
     _path -> m_node_vec.push_back(_current_node_ID);
+    // std::cout << "extract c"<< std::endl;
     _path -> m_link_vec.push_back(_current_link_ID);
+    // std::cout << "extract d:" << _current_link_ID << "," << _current_node_ID << std::endl;
     _current_node_ID = graph -> GetEI(_current_link_ID).GetDstNId();
+    // std::cout << "extract e"<< std::endl;
   }
   _path -> m_node_vec.push_back(_current_node_ID);
+  // std::cout << "extract ends"<< std::endl;
   return _path;
 }
 
@@ -106,6 +113,7 @@ MNM_Path *extract_path(TInt origin_ID, TInt dest_ID, std::unordered_map<TInt, TI
 Path_Table *build_pathset(PNEGraph &graph, MNM_OD_Factory *od_factory, MNM_Link_Factory *link_factory)
 {
   /* setting */
+  // std::cout << "BUild path Here" << std::endl;
   size_t MaxIter = 10;
   TFlt Mid_Scale = 3;
   TFlt Heavy_Scale = 6;
@@ -120,6 +128,7 @@ Path_Table *build_pathset(PNEGraph &graph, MNM_OD_Factory *od_factory, MNM_Link_
       _new_map -> insert(std::pair<TInt, MNM_Pathset*>(_d_it -> second -> m_dest_node -> m_node_ID, _pathset));
     }
   }
+  // std::cout << "BUild path Here 2" << std::endl;
 
   std::unordered_map<TInt, TInt> _mid_shortest_path_tree = std::unordered_map<TInt, TInt>();
   std::unordered_map<TInt, TInt> _heavy_shortest_path_tree = std::unordered_map<TInt, TInt>();
@@ -130,18 +139,26 @@ Path_Table *build_pathset(PNEGraph &graph, MNM_OD_Factory *od_factory, MNM_Link_
   std::unordered_map<TInt, TFlt> _free_cost_map =  std::unordered_map<TInt, TFlt>();
   std::unordered_map<TInt, TInt> _free_shortest_path_tree;
   MNM_Path *_path;
+  // std::cout << "BUild path Here 2" << std::endl;
   for (auto _link_it = link_factory -> m_link_map.begin(); _link_it!= link_factory -> m_link_map.end(); _link_it++){
     _free_cost_map.insert(std::pair<TInt, TFlt>(_link_it -> first, _link_it -> second -> get_link_tt()));
   }
+  // std::cout << "BUild path Here 2" << std::endl;
   for (auto _d_it = od_factory -> m_destination_map.begin(); _d_it != od_factory -> m_destination_map.end(); _d_it++){
     _dest_node_ID = _d_it -> second -> m_dest_node -> m_node_ID;
     MNM_Shortest_Path::all_to_one_FIFO(_dest_node_ID, graph, _free_cost_map, _free_shortest_path_tree);
+    // std::cout << "a" << std::endl;
     for (auto _o_it = od_factory -> m_origin_map.begin(); _o_it != od_factory -> m_origin_map.end(); _o_it++){
+
       _origin_node_ID = _o_it -> second -> m_origin_node -> m_node_ID;
+      // std::cout << _origin_node_ID << "," << _dest_node_ID << std::endl;
       _path = MNM::extract_path(_origin_node_ID, _dest_node_ID, _free_shortest_path_tree, graph);
+      // std::cout << "_extracted"<< std::endl;
       _path_table -> find(_origin_node_ID) -> second -> find(_dest_node_ID) -> second -> m_path_vec.push_back(_path);
     }
+    // std::cout << "b" << std::endl;
   }
+  
 
   _mid_cost_map.insert(_free_cost_map.begin(), _free_cost_map.end());
   _heavy_cost_map.insert(_free_cost_map.begin(), _free_cost_map.end());
@@ -183,6 +200,7 @@ Path_Table *build_pathset(PNEGraph &graph, MNM_OD_Factory *od_factory, MNM_Link_
     }
     _CurIter += 1;
   }
+  // std::cout << "BUild path Here ENd" << std::endl;
   return _path_table;
 }
 
@@ -197,10 +215,13 @@ int save_path_table(Path_Table *path_table, MNM_OD_Factory *od_factory)
     exit(-1);
   }
   TInt _dest_node_ID, _origin_node_ID;
+  // for (auto _node_it = )
   for (auto _d_it = od_factory -> m_destination_map.begin(); _d_it != od_factory -> m_destination_map.end(); _d_it++){
     _dest_node_ID = _d_it -> second -> m_dest_node -> m_node_ID;
     for (auto _o_it = od_factory -> m_origin_map.begin(); _o_it != od_factory -> m_origin_map.end(); _o_it++){
       _origin_node_ID = _o_it -> second -> m_origin_node -> m_node_ID;
+      // std::cout<< _dest_node_ID << "," << _origin_node_ID <<std::endl;
+
       for (auto &_path : path_table -> find(_origin_node_ID) -> second -> find(_dest_node_ID) -> second -> m_path_vec){
         _path_table_file << _path -> node_vec_to_string();
       }

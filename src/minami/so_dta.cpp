@@ -7,7 +7,7 @@ TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 	//TODO 
 	TFlt _pmc = TFlt(0.0);
 	TInt _track_time = t;
-	// std::cout<< "Computing upper pmc ..............." << std::endl;
+	// std::cout<< "Computing upper pmc ..............." ;
 	for (size_t _l_it = 0;_l_it < path->m_link_vec.size();_l_it++){
 		// std::cout << _pmc << "," << _track_time << "," << m_link_factory -> get_link(path->m_link_vec[_l_it]) -> m_link_ID<< std::endl;
 		// int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(_track_time);
@@ -15,6 +15,7 @@ TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 		// if (ifcongest!=-1){
 		if (m_link_factory -> get_link(path->m_link_vec[_l_it]) -> m_ffs > 1000)continue;
 		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_upper(_track_time,m_unit_time) -_track_time;
+		// std::cout << _pmc  << "( " << m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_upper(_track_time,m_unit_time) << "," << _track_time << ")"  << ",";
 		// }
 		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time,m_unit_time);
 
@@ -23,6 +24,7 @@ TFlt MNM_Dta::compute_pmc_upper(TInt t, MNM_Path* path){
 	//  	<< std::endl;
 	}
 	// std::cout << "..................................." << std::endl;
+	// std::cout << _pmc<<std::endl;
 	return _pmc;
 }
 
@@ -30,16 +32,20 @@ TFlt MNM_Dta::compute_pmc_lower(TInt t, MNM_Path* path){
 	//TODO
 	TFlt _pmc = TFlt(0.0);
 	TInt _track_time = t;
+	// std::cout << "Computing UPMC:" ;
 	for (size_t _l_it = 0;_l_it < path->m_link_vec.size();_l_it++){
 		// int ifcongest = m_link_factory -> get_link(path->m_link_vec[_l_it]) -> is_congested_after(_track_time);
 		// _pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> get_link_fftt();
 		// if (ifcongest==1){
+		if (m_link_factory -> get_link(path->m_link_vec[_l_it]) -> m_ffs > 1000)continue;
 		_pmc += m_link_factory -> get_link(path->m_link_vec[_l_it]) -> next_pmc_time_lower(_track_time,m_unit_time) -_track_time;
+		// std::cout << _pmc << ",";
 		// }
-		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_upper(_track_time,m_unit_time);
+		_track_time =  m_link_factory ->get_link(path->m_link_vec[_l_it]) ->next_pmc_time_lower(_track_time,m_unit_time);
 	// std::cout<<  "This tt" <<  m_link_factory -> get_link(_path->m_link_vec[_l_it]) -> get_link_tt() 
 	//  	<< std::endl;
 	}
+	// std::cout << _pmc<<std::endl;
 	return _pmc;
 }
 
@@ -53,7 +59,7 @@ int MNM_Dta::update_pmc_lower(){
 
 
 
-int MNM_Dta::route_update_MSA(TFlt lambda){
+int MNM_Dta::route_update_MSA(TFlt lambda,bool verbose){
 	//baseline MSA algorithm
 
 	// TO DO
@@ -81,13 +87,24 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 	// std::cout << "End time:" << _end_int << std::endl;
 	// std::cout << "unit time:" << m_unit_time << std::endl;
 	TInt _t;
+	TInt _DeltaT = 7; // should be parametric later 
+	// TO DO
 	for (TInt _int = 0; _int < _end_int;_int++){
-		_t = _int * m_assign_freq;
+		_t = _int * m_assign_freq+_DeltaT;
 
 		for (auto _ops = _path_table -> begin();_ops != _path_table ->end(); _ops++){
 			_oid = _ops -> first;
+			// std::cout <<_oid << "," << std::endl;
+			MNM_DMOND* _othis = dynamic_cast<MNM_DMOND*>(m_node_factory->get_node(_oid));
+			// std::cout << _othis->m_origin -> m_demand.size() << std::endl;
+			// std::cout << m_node_factory->get_node(_oid)-> m_origin->m_demand.size() << std::endl;
 			for (auto _dps = _ops -> second -> begin(); _dps != _ops -> second -> end(); _dps++){
 				_did = _dps -> first;
+				MNM_DMDND* _dthis = dynamic_cast<MNM_DMDND*>(m_node_factory->get_node(_did));
+				if(_othis->m_origin -> m_demand.find(_dthis->m_dest)== _othis->m_origin -> m_demand.end()){
+					continue;
+				}
+				// std::cout << _oid <<"," << _did << ":" << _xx <<std::endl;
 				_pset = _dps -> second;
 				if (_pset -> m_path_vec.size() ==0)
 					continue;
@@ -103,23 +120,23 @@ int MNM_Dta::route_update_MSA(TFlt lambda){
 							_min_path_id = _pit;
 							_min_PMC = _thispmc;
 						}
-						std::cout << "Path id:" << _pit << ", pmc:" <<_thispmc << ", at time " << _t << std::endl;
+						// std::cout << "Path id:" << _pit << ", pmc:" <<_thispmc << ", at time " << _t << std::endl;
 					}
-					std::cout<< " reassign from " << _oid << " to "<< _did << " at " << _min_path_id
-						 << " with pmc "<< _min_PMC << " at time "<< _t <<  std::endl; 
+					// std::cout<< " reassign from " << _oid << " to "<< _did << " at " << _min_path_id
+					// 	 << " with pmc "<< _min_PMC << " at time "<< _t <<  std::endl; 
 					pre_routing -> reassign_routing(_oid,_did,_min_path_id,_int,lambda);
 				}
 			}
 		}
 	}
-	std::cout << pre_routing -> toString() << std::endl;
+	// std::cout << pre_routing -> toString() << std::endl;
 
 }
 
 
 
 
-int  MNM_Dta::route_update_PHA(TFlt lambda){
+int  MNM_Dta::route_update_PHA(TFlt lambda,bool verbose){
 
 	TInt _assign_inter = m_start_assign_interval;
 	TInt _cur_int = 0;
@@ -142,11 +159,21 @@ int  MNM_Dta::route_update_PHA(TFlt lambda){
 
 		for (auto _ops = _path_table -> begin();_ops != _path_table ->end(); _ops++){
 			_oid = _ops -> first;
+			// std::cout <<m_od_factory->get_origin(_oid)->m_demand.size() << std::endl;
+			MNM_DMOND* _othis = dynamic_cast<MNM_DMOND*>(m_node_factory->get_node(_oid));
 			for (auto _dps = _ops -> second -> begin(); _dps != _ops -> second -> end(); _dps++){
+
 				_did = _dps -> first;
 				_pset = _dps -> second;
+				MNM_DMDND* _dthis = dynamic_cast<MNM_DMDND*>(m_node_factory->get_node(_did));
+				if(_othis->m_origin -> m_demand.find(_dthis->m_dest)== _othis->m_origin -> m_demand.end()){
+					continue;
+				}
 				if (_pset -> m_path_vec.size() ==0)
 					continue;
+				// else if (m_od_factory.get_origin(_oid)->m_demand[m_od_factory.get_demand(_did)].size()==0){
+				// 	continue;
+				// }
 				else{
 					_min_uPMC = TFlt(std::numeric_limits<double>::max());
 					_min_lPMC = TFlt(std::numeric_limits<double>::max());
@@ -156,6 +183,8 @@ int  MNM_Dta::route_update_PHA(TFlt lambda){
 						_path  = _pset -> m_path_vec[_pit];
 						_thisupmc = compute_pmc_upper(_t,_path);
 						_thislpmc = compute_pmc_lower(_t,_path);
+						// std::cout << "Path id:" << _pit << ", upmc:" <<_thisupmc << ",lpmc:" << _thislpmc << 
+							// ", at time " << _t << std::endl;
 						if (_thisupmc < _min_lPMC){
 							_psmp.clear();
 							_psmp.insert(TInt(_pit));
@@ -169,6 +198,7 @@ int  MNM_Dta::route_update_PHA(TFlt lambda){
 							_min_uPMC = std::max(_min_uPMC,_thisupmc);
 						}	
 					}
+					// std::cout<< " reassign from " << _oid << " to "<< _did <<std::endl; 
 					pre_routing -> reassign_routing_batch(_oid,_did,_psmp,_int,lambda);
 
 
@@ -178,6 +208,7 @@ int  MNM_Dta::route_update_PHA(TFlt lambda){
 			}
 		}
 	}
+	// std::cout << pre_routing -> toString() << std::endl;
 
 	
 	return 0;
@@ -294,6 +325,7 @@ int MNM_Dta::reinstall_cumulative_curve(){
 		_link = _link_it -> second;
 		_link -> install_cumulative_curve();
 	}
+	return 0;
 }
 
 // int MNM_Dta::link_update_iscongested(){

@@ -56,16 +56,14 @@ int MNM_DMOND::evolve(TInt timestamp)
   /* compute our flow */
   std::deque<MNM_Veh*>::iterator _que_it = m_in_veh_queue.begin();
   while (_que_it != m_in_veh_queue.end()) {
-    // std::cout << "Here "<< std::endl;
-    // std::cout<< (*_que_it) -> m_veh_ID << std::endl;
 
     _link = (*_que_it) -> get_next_link();
+    // std::cout << "Here 2" << (*_que_it) -> get_current_link() << std::endl;
     // std::cout << "Thislink: " << _link->m_link_ID << std::endl;
     // if (m_out_volume.find(_link) == m_out_volume.end()){
     //   std::cout << "not found the link" << std::endl;
     // }
     m_out_volume.find(_link) -> second += 1;
-    // std::cout << "Thislink: " << _link->m_link_ID << std::endl;
     _que_it++;
   }
 
@@ -333,7 +331,11 @@ int MNM_Dnode_Inout::update_link_congestion(){
     _in_link = m_in_link_array[i];
     if (_in_link ->is_congested()) {
       _in_link -> indicator_congestion -> push_back(1);
-    }else{
+    }
+    else if(_in_link ->is_congested() == -1){
+      _in_link -> indicator_congestion -> push_back(0);
+    }
+    else{
       int idt = 0;
       for (size_t j=0; j< m_out_link_array.size(); ++j){
         if (m_demand[_offset*i + j] == m_supply[j]){
